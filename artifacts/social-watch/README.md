@@ -126,17 +126,86 @@ All persistent user content is held in **IndexedDB as a single authenticated enc
 
 ## Install as an app
 
+Publish the production website once using the GitHub Pages instructions above.
+Then use its exact HTTPS URL (including any repository path) on every device.
+Installation is browser-managed: there is no `.exe`, `.dmg`, `.ipa`, App Store
+submission, Xcode project, or Apple developer-account requirement. Ordinary users
+do not need Node.js, pnpm, or Git. Avoid private/incognito sessions.
+
 ### Windows (Edge or Chrome)
 
-Open the published HTTPS site, then use the address-bar install icon, or **Menu → Apps → Install this site as an app** (wording varies). It opens in its own window. There is no `.exe` or native application.
+1. Open the published HTTPS site in an up-to-date Edge or Chrome on a supported
+   Windows release.
+2. Click the address-bar **Install** icon. In Edge you can also choose **… → Apps →
+   Install this site as an app** (sometimes under **More tools**). In Chrome look
+   under **⋮ → Cast, save, and share → Install page as app** / **Install Social Watch**.
+3. Confirm **Install**, then pin the app to Start/taskbar or create a shortcut if offered.
+4. Launch that shortcut and create/unlock the vault inside the installed app.
+   Edge installations can also be managed at `edge://apps`.
+
+An organization policy can block installation. In that case, use a normal browser
+tab or ask your administrator; do not bypass device policy.
+
+### macOS (Safari, Chrome, or Edge)
+
+1. On **macOS Sonoma 14 or later**, open the published site in Safari.
+2. Choose **File → Add to Dock**, or **Share → Add to Dock**.
+3. Name it **Social Watch**, click **Add**, and launch it from the Dock or your user's
+   Applications folder.
+4. Create/unlock the vault and connect accounts inside that app. Its storage can
+   differ from the original Safari tab.
+
+Chrome and Edge on a supported macOS version also offer browser-managed installation
+from the address bar or their **Install page as app** / **Install this site as an app**
+menu. Older Safari versions without Add to Dock can still use the website as a tab.
 
 ### iPhone / iPad
 
-Open the published site in **Safari**, tap **Share → Add to Home Screen**, then launch from that icon. Browser and home-screen storage may be separate depending on iOS version; create the vault and reconnect there. No server push is used. iOS may suspend polling when the app is inactive; return to the app or pull down to refresh. Allowing notifications does not enable reliable background polling.
+1. Open the published site directly in **Safari**, not an embedded social/messaging browser.
+2. Tap **Share → Add to Home Screen**. Share may be inside Safari's menu; use
+   **Edit Actions** if Add to Home Screen is missing.
+3. If shown, enable **Open as Web App**, keep the name **Social Watch**, and tap **Add**.
+4. Launch from the new Home Screen icon while online.
+5. Create/unlock the vault and reconnect your accounts there. Browser and Home Screen
+   storage may be separate depending on iOS version.
+
+Use current iOS/iPadOS. Home Screen notification APIs require **16.4+**, but no server
+push is used by this app. iOS may suspend polling when inactive; return to the app or
+pull down to refresh. Allowing notifications never enables reliable background polling.
+There is no separate iOS deployment or App Store/TestFlight build.
+
+### First launch, notifications, updates, and removal
+
+- Choose a unique vault passphrase of at least 12 characters. There is no recovery.
+  For live data, follow **Create your own Meta developer app** above, enter only
+  the App ID in **Settings → General**, then use **Settings → Accounts → Connect
+  with Facebook**. Demo mode is simulated and does not connect accounts.
+- In **Settings → Notifications**, request device permission, then enable each
+  desired account and event category. Test delivery in the installed app.
+  Account login does not opt anyone into notifications. Auto-lock still stops refresh.
+- Open online to receive deployed updates; finish saves, then lock/reopen or reload.
+  Do not clear browser/app data as a routine update step.
+- Before uninstalling, export settings if needed. Encrypted `.swprofile` files
+  transfer settings, **not credentials, accounts, comments, or audit history**.
+  Each device must reconnect its own accounts and choose notification opt-ins.
+- In Edge, manage/uninstall using `edge://apps`; in Chrome use the installed app menu.
+  A Safari Mac web app is in Finder **Go → Home → Applications** and can be moved
+  to Trash after quitting. On iOS, touch and hold the Home Screen icon and use the
+  offered Remove/Delete action.
+- Removing a shortcut is not a guarantee that site data is erased. Clearing storage
+  can permanently lose the vault. For intentional erasure, use the app's confirmed
+  **Wipe all data** action; revoke Meta permissions separately if desired.
 
 ### Offline
 
 The production service worker precaches only the bundled application shell. No Meta API responses or tokens enter the Cache API. Unlocking, viewing previously encrypted comments, settings, launch-link management and local reviews work offline. Remote moderation, refreshing and opening external platforms need a connection. The first visit must be online. Service workers are intentionally disabled during development; installation/offline behavior must be checked against the production build.
+
+To check it, load the production app online, create a vault and let any fetched data
+finish saving, then reload online once to let the worker take control. Disconnect the
+network/enable airplane mode, reopen from the installed icon, and unlock. Previously
+saved data should remain available, but no new comments or remote moderation can be
+retrieved offline. Browser storage eviction or clearing can remove both cache and vault.
+These instructions describe intended behavior, not physical-device certification.
 
 ## Known limitations
 
