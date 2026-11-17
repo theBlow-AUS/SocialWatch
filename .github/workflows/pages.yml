@@ -23,6 +23,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @workspace/social-watch typecheck
       - run: pnpm --filter @workspace/social-watch test
+      - run: pnpm --filter @workspace/social-watch exec playwright install --with-deps chromium
+      - run: pnpm --filter @workspace/social-watch test:browser
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: vault-browser-failures
+          path: generated-artifacts/social-watch-browser
+          retention-days: 7
       - run: pnpm --filter @workspace/social-watch build
       - uses: actions/upload-pages-artifact@v3
         with:

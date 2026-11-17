@@ -1,0 +1,1 @@
+- [Vault regression testing](vault-regression-testing.md) — exercise native browser storage faults without application unlock shortcuts.

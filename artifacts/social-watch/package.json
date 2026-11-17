@@ -8,11 +8,13 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "serve": "vite preview --host 0.0.0.0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.browser.json",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:browser": "playwright test",
     "icons": "node scripts/icons.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "lucide-react": "^0.545.0",

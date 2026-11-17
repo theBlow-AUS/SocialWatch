@@ -159,6 +159,26 @@ The production service worker precaches only the bundled application shell. No M
 
 `pnpm test` runs Node's built-in unit tests for cryptographic round trips, randomized salt/IV, incorrect passwords, tampering, metadata validation, export credential exclusion, malformed import handling and unsafe URLs. Notification tests cover inactive-tab and idle-lock guards, per-account opt-ins, comment/reply categories, watchlist filtering, silent baselines, deduplication, import exclusion, generic notification text and session checks. Automated logic tests do not certify OS notification delivery on real devices.
 
+### Browser vault regressions
+
+`pnpm test:browser` (workspace: `pnpm --filter @workspace/social-watch test:browser`)
+runs Playwright against the existing development workflow through `http://127.0.0.1:80`.
+For another running development server, set `VAULT_TEST_BASE_URL` to its root URL.
+Install a browser once with `pnpm exec playwright install chromium`, or set
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to an existing Chromium executable.
+CI starts a disposable Vite server automatically and runs this suite before deployment.
+`pnpm typecheck` also checks the browser tests.
+
+Each test has a fresh, isolated browser context and uses only synthetic profiles and
+passphrases. Native IndexedDB and WebCrypto exercise encrypted create/unlock/save/lock/wipe,
+ordered save snapshots, concurrent creates, cancellation during encryption and database
+opening, transaction abort recovery, unavailable storage, wrong-passphrase UI, failed-wipe
+visibility and retrying failed saves. Browser API fault injection exists only in the test
+runner: no credentials, production unlock bypass or application test hooks are added.
+Failure traces go to the ignored `generated-artifacts/social-watch-browser` directory
+(two levels above this package in the workspace). These tests do not verify PWA installation,
+offline caching or real Meta login.
+
 Source areas:
 
 - `src/core/crypto.ts` — encryption envelope, key derivation and authentication.

@@ -12,6 +12,9 @@ import { ago, audit, errMsg, makeDemo, uid, type DemoData } from './ui/util';
 type Phase = 'boot' | 'setup' | 'unlock' | 'app';
 type Modal = null | 'settings' | 'help' | 'audit' | 'accounts';
 interface Problem { message: string; reauth?: boolean; retryAt?: number }
+interface Problem { message: string; reauth?: boolean; retryAt?: number }
+interface Problem { message: string; reauth?: boolean; retryAt?: number }
+interface Problem { message: string; reauth?: boolean; retryAt?: number }
 
 function systemTheme(): 'light' | 'dark' {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -55,7 +58,12 @@ function App() {
     catch { setSaveError('This change is invalid or exceeds the profile safety limits. It was not saved.'); return; }
     ref.current = next;
     setProfile(next);
-    saveProfile(next).then(() => setSaveError('')).catch((e) => setSaveError(`Changes could not be saved to the encrypted vault: ${errMsg(e)}`));
+    const started = session.current;
+    saveProfile(next).then(() => {
+      if (started === session.current) setSaveError('');
+    }).catch((e) => {
+      if (started === session.current) setSaveError(`Changes could not be saved to the encrypted vault: ${errMsg(e)}`);
+    });
   }, []);
 
   const lock = useCallback(() => {
@@ -134,6 +142,7 @@ function App() {
     baselinedAccounts.current.clear();
     notificationSeen.current.clear();
     idleDeadline.current = Date.now() + p.settings.idleMinutes * 60000;
+    setSaveError('');
     ref.current = p; setProfile(p); setPhase('app');
     try {
       const login = await finishLogin();
@@ -252,17 +261,18 @@ function App() {
   }, [update, isDemo]);
 
   const wipe = async () => {
-    session.current++;
+    // Even if deletion fails, never leave an unlocked-looking desk with no key.
+    lock();
     baselinedAccounts.current.clear();
     notificationSeen.current.clear();
     void dismissLocalNotifications().catch(() => {});
-    try { clearPendingOAuth(); await wipeVault(); ref.current = null; setProfile(null); setDemo(null); setModal(null); setPhase('setup'); }
+    try { await wipeVault(); setPhase('setup'); }
     catch (e) { setSaveError(`Wipe failed: ${errMsg(e)}`); }
   };
 
   if (phase === 'boot') return <div className="gate" aria-busy="true" />;
   if (phase === 'setup' || phase === 'unlock' || !profile) {
-    return <Gate key={phase} mode={phase === 'setup' ? 'setup' : 'unlock'} onWipe={wipe}
+    return <Gate key={phase} mode={phase === 'setup' ? 'setup' : 'unlock'} onWipe={wipe} storageError={saveError}
       onSubmit={async (pass) => {
         if (phase === 'setup') { const p = defaultProfile(); p.settings.theme = systemTheme(); await createVault(pass, p); await onUnlocked(p); }
         else await onUnlocked(await unlockVault(pass));

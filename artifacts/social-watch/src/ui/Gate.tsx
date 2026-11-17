@@ -26,9 +26,10 @@ interface Props {
   mode: 'setup' | 'unlock';
   onSubmit: (pass: string) => Promise<void>;
   onWipe: () => Promise<void>;
+  storageError?: string;
 }
 
-export function Gate({ mode, onSubmit, onWipe }: Props) {
+export function Gate({ mode, onSubmit, onWipe, storageError }: Props) {
   const [pass, setPass] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -90,7 +91,7 @@ export function Gate({ mode, onSubmit, onWipe }: Props) {
               <small>{pass.length}/12 characters minimum</small>
             </label>
           </>}
-          {error && <div className="err" role="alert" data-testid="text-gate-error">{error}</div>}
+          {(error || storageError) && <div className="err" role="alert" data-testid="text-gate-error">{error || storageError}</div>}
           <button className="btn primary lg" disabled={busy || !pass} data-testid="button-gate-submit">
             {setup ? <KeyRound /> : <Lock />}
             {busy ? (setup ? 'Deriving key…' : 'Unlocking…') : setup ? 'Create encrypted vault' : 'Unlock'}

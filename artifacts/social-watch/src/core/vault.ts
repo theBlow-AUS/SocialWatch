@@ -8,20 +8,35 @@ let generation = 0;
 let writes: Promise<void> = Promise.resolve();
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
+    let blocked = false;
     const request = indexedDB.open('social-watch-private', 1);
     request.onupgradeneeded = () => request.result.createObjectStore('vault');
-    request.onsuccess = () => resolve(request.result);
+    request.onblocked = () => {
+      blocked = true;
+      reject(new Error('Device storage is blocked. Close other Social Watch tabs and try again.'));
+    };
+    request.onsuccess = () => {
+      // A blocked request can succeed after its caller has already given up.
+      if (blocked) { request.result.close(); return; }
+      request.result.onversionchange = () => request.result.close();
+      resolve(request.result);
+    };
     request.onerror = () => reject(new Error('Cannot open device storage. Check browser privacy settings.'));
   });
 }
-async function storage<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest): Promise<T> {
+async function storage<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest, beforeTransaction?: () => void): Promise<T> {
   const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('vault', mode);
-    const request = operation(tx.objectStore('vault'));
-    tx.oncomplete = () => { db.close(); resolve(request.result as T); };
-    tx.onabort = tx.onerror = () => { db.close(); reject(new Error('Device storage failed. Your latest changes were not saved.')); };
-  });
+  try {
+    // Opening IndexedDB is asynchronous too: locking must invalidate a save
+    // here, not only before/after encryption.
+    beforeTransaction?.();
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction('vault', mode);
+      const request = operation(tx.objectStore('vault'));
+      tx.oncomplete = () => resolve(request.result as T);
+      tx.onabort = tx.onerror = () => reject(new Error('Device storage failed. Your latest changes were not saved.'));
+    });
+  } finally { db.close(); }
 }
 export async function hasVault(): Promise<boolean> {
   return !!await storage<Envelope | undefined>('readonly', s => s.get('profile'));
@@ -54,7 +69,9 @@ export function saveProfile(profile: Profile): Promise<void> {
     if (version !== generation) throw new Error('Profile locked before changes could be saved.');
     const envelope = await encryptWithKey(validated, key, salt);
     if (version !== generation) throw new Error('Profile locked before changes could be saved.');
-    await storage('readwrite', s => s.put(envelope, 'profile'));
+    await storage('readwrite', s => s.put(envelope, 'profile'), () => {
+      if (version !== generation) throw new Error('Profile locked before changes could be saved.');
+    });
   });
   writes = next;
   return next;
