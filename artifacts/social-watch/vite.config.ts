@@ -31,6 +31,7 @@ export default defineConfig(({ command }) => ({
         ],
       },
       workbox: {
+        importScripts: ['notification-events.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',

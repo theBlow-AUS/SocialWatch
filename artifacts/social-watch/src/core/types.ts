@@ -29,6 +29,13 @@ export const TileSchema = z.object({
 export const AuditSchema = z.object({
   id, at: z.string(), action: text, commentId: id.optional(), detail: text,
 });
+export const NotificationPreferenceSchema = z.object({
+  enabled: z.boolean(),
+  comments: z.boolean(),
+  replies: z.boolean(),
+  watchlistOnly: z.boolean(),
+});
+export type NotificationPreference = z.infer<typeof NotificationPreferenceSchema>;
 export const ProfileSchema = z.object({
   version: z.literal(1),
   settings: z.object({
@@ -37,6 +44,8 @@ export const ProfileSchema = z.object({
     idleMinutes: z.number().min(1).max(120),
     refreshSeconds: z.number().refine(n => n === 0 || (n >= 60 && n <= 3600)),
     theme: z.enum(['light', 'dark']),
+    backgroundRefresh: z.boolean().optional(),
+    notifications: z.record(NotificationPreferenceSchema).optional(),
   }),
   accounts: z.array(AccountSchema).max(100),
   posts: z.array(PostSchema).max(20000),

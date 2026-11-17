@@ -5,6 +5,10 @@ export function portableProfile(profile: Profile): Profile {
   // This is a setup transfer, never a token/account-data synchronization mechanism.
   return ProfileSchema.parse({
     ...profile,
+    settings: {
+      ...profile.settings,
+      ...(profile.settings.notifications ? { notifications: {} } : {}),
+    },
     accounts: [], posts: [], comments: [], audit: [],
     columns: profile.columns.map(({ accountId: _account, postId: _post, ...column }) => column),
   });

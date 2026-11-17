@@ -91,9 +91,23 @@ No secret-based code exchange, automatic long-lived-token exchange or server-sid
 - View the local moderation audit log; export CSV or JSON intentionally. **Audit downloads are plaintext** and can contain names and reply text; protect them separately.
 - Add/edit/reorder/remove HTTPS launch tiles. LinkedIn and TikTok open official admin/studio sites in new tabs; custom destinations are your responsibility.
 - Choose light/dark appearance and auto-lock from 1–120 idle minutes.
-- Manual refresh is the default. Optional polling is 60–3600 seconds, only when unlocked and visible. Refresh also runs after unlocking/reopening; pull down on a column to refresh on touch devices.
+- Manual refresh is the default. Optional polling is 60–3600 seconds, normally only when unlocked and visible. **Settings → Notifications** can allow best-effort inactive-tab refresh. Auto-lock still stops all monitoring. Refresh also runs after unlocking/reopening; pull down on a column to refresh on touch devices.
 - `r`: refresh, `l`: lock, `?`: help, `Esc`: close a dialog. Shortcuts are ignored in input fields.
 - **Try demo** is explicitly simulated, opt-in and in-memory. It never connects an account. Simulated moderation is labelled in the local audit log.
+
+## Inactive tabs and local notifications
+
+Social Watch remains **fully static**, as requested. It has no notification backend, Web Push subscriptions, webhooks, or background scheduler.
+
+1. In **Settings → Notifications**, enable **Try refreshing in inactive tabs while unlocked**. If refresh was manual-only, this sets a 60-second interval. General settings can adjust the interval later.
+2. Click **Allow notifications** yourself; connecting an account never prompts automatically. If blocked, change this site's permission in browser/device settings. Some mobile browsers expose notifications only from an installed Home Screen PWA.
+3. Opt in independently for each connected Facebook Page or linked Instagram account. Select new comments, new replies, or restrict either category to watchlist matches.
+4. Use **Send test notification** to check device permission. System Focus / Do Not Disturb can suppress delivery.
+5. After each unlock, the first successful account refresh is a silent baseline. Later refreshes can notify about new matching items while the tab is inactive. Cached/reviewed comments and duplicate items do not create alerts.
+
+Notifications show a generic item count only: **no account names, authors, tokens, or comment text** are passed to the operating system. Clicking a production notification focuses/reopens Social Watch. Notification choices are encrypted with the profile but remain device-specific: profile transfers exclude them, and importing settings preserves the destination device's current choices. New devices/accounts default to off.
+
+**These are local notifications, not true push.** Browsers may throttle or suspend inactive tabs, and closing the app prevents new alerts. iPhone/iPad cannot reliably keep this polling loop running in the background, even when the PWA is installed and notifications are allowed. Auto-lock still takes precedence; enabling monitoring never extends the unlock period. LinkedIn and TikTok have no event access here—use their native notification settings.
 
 ## Encryption, import and export
 
@@ -118,7 +132,7 @@ Open the published HTTPS site, then use the address-bar install icon, or **Menu 
 
 ### iPhone / iPad
 
-Open the published site in **Safari**, tap **Share → Add to Home Screen**, then launch from that icon. Browser and home-screen storage may be separate depending on iOS version; create the vault and reconnect there. No push/background polling is used. Return to the app or pull down to refresh.
+Open the published site in **Safari**, tap **Share → Add to Home Screen**, then launch from that icon. Browser and home-screen storage may be separate depending on iOS version; create the vault and reconnect there. No server push is used. iOS may suspend polling when the app is inactive; return to the app or pull down to refresh. Allowing notifications does not enable reliable background polling.
 
 ### Offline
 
@@ -126,7 +140,7 @@ The production service worker precaches only the bundled application shell. No M
 
 ## Known limitations
 
-- **No background polling** on any platform. No webhooks, push notifications or always-on process. Refresh stops when hidden or locked; suspended mobile pages may be discarded.
+- **No reliable background execution or server push.** Opt-in inactive-tab polling is best-effort only, stops when locked/closed, and can be delayed or suspended by the browser. Local notifications require a successful refresh and explicit device/account opt-in. Suspended mobile pages may be discarded; iPhone cannot reliably monitor while inactive.
 - **LinkedIn and TikTok are launch tiles only.** There is no feed import or moderation API for those platforms.
 - **Short-lived tokens require re-authentication**. No app secret, long-lived exchange, trusted backend or account synchronization.
 - Meta Login and live moderation need your own correctly configured app and eligible accounts. They cannot be demonstrated or verified without those accounts. Some app types require Login for Business settings beyond a plain App ID.
@@ -143,7 +157,7 @@ The production service worker precaches only the bundled application shell. No M
 
 ## Tests and code
 
-`pnpm test` runs Node's built-in unit tests for cryptographic round trips, randomized salt/IV, incorrect passwords, tampering, metadata validation, export credential exclusion, malformed import handling and unsafe URLs.
+`pnpm test` runs Node's built-in unit tests for cryptographic round trips, randomized salt/IV, incorrect passwords, tampering, metadata validation, export credential exclusion, malformed import handling and unsafe URLs. Notification tests cover inactive-tab and idle-lock guards, per-account opt-ins, comment/reply categories, watchlist filtering, silent baselines, deduplication, import exclusion, generic notification text and session checks. Automated logic tests do not certify OS notification delivery on real devices.
 
 Source areas:
 
@@ -151,6 +165,7 @@ Source areas:
 - `src/core/vault.ts` — encrypted IndexedDB and session key lifetime.
 - `src/core/profile-transfer.ts` — validated, settings-only encrypted transfer.
 - `src/core/meta.ts` — browser OAuth, Graph discovery, refresh and moderation.
+- `src/core/notifications.ts` — static-only refresh policy and privacy-preserving local notifications.
 - `src/App.tsx`, `src/ui/` — Preact application and plain CSS.
 - `vite.config.ts` — relative static build, Preact aliases, production shell caching.
 

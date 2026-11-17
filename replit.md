@@ -11,6 +11,8 @@ Private, serverless social moderation PWA, targeting GitHub Pages. Replit is dev
 - All persisted user data must remain encrypted in IndexedDB. OAuth nonce/timestamp are temporary security state, not tokens.
 - Profile files transfer settings only; no tokens or account content. Each device connects separately.
 - Deploy static output to GitHub Pages, not a Replit server. Never add author-specific contacts or credentials.
+- The user explicitly chose to keep it fully static when offered a notification backend. Only best-effort inactive-tab refresh and local notifications are permitted, never promise push after suspension/closure.
+- Background refresh is opt-in and must stop at auto-lock; per-account notification choices stay device-local and are never enabled by profile import.
 
 ## Run
 

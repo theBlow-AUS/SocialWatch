@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { RefreshCw, Lock, Settings as Cog, HelpCircle, Moon, Sun, ScrollText, AlertTriangle, Plug, X, FlaskConical } from 'lucide-react';
 import { defaultProfile, ProfileSchema, type Column, type Comment, type Profile, type Tile } from './core/types';
 import { createVault, hasVault, lockVault, saveProfile, unlockVault, wipeVault } from './core/vault';
-import { MetaError, beginLogin, clearPendingOAuth, discoverAccounts, finishLogin, moderate, refreshMeta } from './core/meta';
+import { MetaError, beginLogin, clearPendingOAuth, discoverAccounts, finishLogin, moderate, refreshMeta, setMetaRequestGuard } from './core/meta';
+import { canRefresh, dismissLocalNotifications, selectAlerts, showLocalNotification } from './core/notifications';
 import { Gate, BrandMark } from './ui/Gate';
 import { AddColumn, DeckColumn, TYPE_LABEL, type DeckData, type ModAction } from './ui/Deck';
 import { AuditLog, Help, Settings } from './ui/Panels';
@@ -32,6 +33,8 @@ function App() {
   const busyRef = useRef(false);
   const session = useRef(0);
   const idleDeadline = useRef(0);
+  const baselinedAccounts = useRef(new Set<string>());
+  const notificationSeen = useRef(new Set<string>());
 
   useEffect(() => {
     hasVault().then((h) => setPhase(h ? 'unlock' : 'setup')).catch(() => {
@@ -58,11 +61,22 @@ function App() {
   const lock = useCallback(() => {
     session.current++;
     clearPendingOAuth();
+    baselinedAccounts.current.clear();
+    notificationSeen.current.clear();
+    void dismissLocalNotifications().catch(() => {});
     lockVault();
     ref.current = null;
     setProfile(null); setDemo(null); setModal(null); setProblem(null); setSaveError(''); setLastRefresh(null); setToast('');
     setPhase('unlock');
   }, []);
+
+  useEffect(() => {
+    setMetaRequestGuard(() => {
+      if (ref.current && idleDeadline.current && Date.now() >= idleDeadline.current) { lock(); return false; }
+      return canRefresh(ref.current, document.hidden, idleDeadline.current);
+    });
+    return () => setMetaRequestGuard(() => false);
+  }, [lock]);
 
   const showMetaError = (e: unknown) => {
     if (e instanceof MetaError) setProblem({ message: e.message, reauth: e.reauth, retryAt: e.retryAt });
@@ -72,20 +86,39 @@ function App() {
   const refresh = useCallback(async () => {
     const p = ref.current;
     const started = session.current;
-    if (!p || document.hidden || busyRef.current) return;
+    if (!p || busyRef.current) return;
+    if (idleDeadline.current && Date.now() >= idleDeadline.current) { lock(); return; }
+    if (!canRefresh(p, document.hidden, idleDeadline.current)) return;
     if (!p.accounts.some((a) => a.token)) { if (demo) flash('Demo data is static — nothing to fetch'); return; }
     busyRef.current = true; setRefreshing(true);
     try {
       const { posts, comments } = await refreshMeta(p);
       if (!ref.current || started !== session.current) return;
+      const latest = ref.current;
+      // Remember IDs across temporary disappearance, avoiding repeat alerts this session.
+      const unseen = comments.filter(c => !notificationSeen.current.has(`${c.accountId}:${c.id}`));
+      const alerts = selectAlerts(latest, unseen, baselinedAccounts.current);
+      latest.accounts.forEach(a => baselinedAccounts.current.add(a.id));
+      comments.forEach(c => notificationSeen.current.add(`${c.accountId}:${c.id}`));
       update((x) => {
         const old = new Map(x.comments.map((c) => [c.id, c]));
         return { ...x, posts, comments: comments.map((c) => ({ ...c, reviewed: old.get(c.id)?.reviewed ?? c.reviewed })) };
       });
       setProblem(null); setLastRefresh(Date.now());
+      if (document.hidden && alerts.size) {
+        const stillAllowed = () => started === session.current &&
+          canRefresh(ref.current, document.hidden, idleDeadline.current) &&
+          document.hidden;
+        const count = [...alerts].reduce((n, [accountId, total]) =>
+          n + (ref.current?.settings.notifications?.[accountId]?.enabled ? total : 0), 0);
+        if (count) {
+          try { await showLocalNotification(count, stillAllowed); }
+          catch (e) { if (stillAllowed()) flash(`Notification unavailable: ${errMsg(e)}`); }
+        }
+      }
     } catch (e) { if (started === session.current && ref.current) showMetaError(e); }
     finally { busyRef.current = false; setRefreshing(false); }
-  }, [update, demo]);
+  }, [update, demo, lock]);
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
 
@@ -98,6 +131,9 @@ function App() {
 
   const onUnlocked = async (p: Profile) => {
     const started = ++session.current;
+    baselinedAccounts.current.clear();
+    notificationSeen.current.clear();
+    idleDeadline.current = Date.now() + p.settings.idleMinutes * 60000;
     ref.current = p; setProfile(p); setPhase('app');
     try {
       const login = await finishLogin();
@@ -137,7 +173,7 @@ function App() {
   useEffect(() => {
     if (phase !== 'app') return;
     const secs = profile?.settings.refreshSeconds ?? 0;
-    const iv = secs ? window.setInterval(() => { if (!document.hidden) void refreshRef.current(); }, secs * 1000) : 0;
+    const iv = secs ? window.setInterval(() => { void refreshRef.current(); }, secs * 1000) : 0;
     const vis = () => {
       if (!document.hidden) {
         if (idleDeadline.current && Date.now() >= idleDeadline.current) { lock(); return; }
@@ -217,6 +253,9 @@ function App() {
 
   const wipe = async () => {
     session.current++;
+    baselinedAccounts.current.clear();
+    notificationSeen.current.clear();
+    void dismissLocalNotifications().catch(() => {});
     try { clearPendingOAuth(); await wipeVault(); ref.current = null; setProfile(null); setDemo(null); setModal(null); setPhase('setup'); }
     catch (e) { setSaveError(`Wipe failed: ${errMsg(e)}`); }
   };
@@ -244,7 +283,7 @@ function App() {
           <span className="status" role="status" data-testid="status-refresh">
             <span className={`dot${refreshing ? ' busy' : problem || saveError ? ' bad' : ''}`} />
             <span className="lbl">{refreshing ? 'Refreshing…' : lastRefresh ? `Updated ${ago(lastRefresh)}` : profile.accounts.length ? 'Not refreshed yet' : 'No accounts connected'}
-              {profile.settings.refreshSeconds ? ` · every ${Math.round(profile.settings.refreshSeconds / 60)}m` : ' · manual'}</span>
+              {profile.settings.refreshSeconds ? ` · every ${Math.round(profile.settings.refreshSeconds / 60)}m${profile.settings.backgroundRefresh ? ' · inactive tabs allowed (best effort)' : ''}` : ' · manual'}</span>
           </span>
           {demo && <span className="chip demo-pill" data-testid="status-demo"><FlaskConical /> Demo · simulated</span>}
         </div>

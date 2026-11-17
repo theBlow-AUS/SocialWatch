@@ -1,11 +1,12 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { NotificationSettings } from './NotificationSettings';
 import { Plug, RefreshCw, Trash2, X, Download, Upload, AlertTriangle, FlaskConical, ScrollText } from 'lucide-react';
 import type { Profile } from '../core/types';
 import { exportProfile, importProfile, download } from '../core/vault';
 import { Confirm, Dialog } from './Dialog';
 import { ago, errMsg, val } from './util';
 
-type Tab = 'general' | 'accounts' | 'watchlist' | 'data';
+type Tab = 'general' | 'accounts' | 'watchlist' | 'notifications' | 'data';
 
 interface SettingsProps {
   profile: Profile;
@@ -26,6 +27,7 @@ export function Settings(p: SettingsProps) {
   const [apiVersion, setApiVersion] = useState(s.apiVersion);
   const [idle, setIdle] = useState(String(s.idleMinutes));
   const [refresh, setRefresh] = useState(String(s.refreshSeconds));
+  useEffect(() => { setRefresh(String(s.refreshSeconds)); }, [s.refreshSeconds]);
   const [err, setErr] = useState('');
   const [saved, setSaved] = useState(false);
   const [term, setTerm] = useState('');
@@ -52,7 +54,7 @@ export function Settings(p: SettingsProps) {
     setTerm('');
   };
 
-  const tabs: [Tab, string][] = [['general', 'General'], ['accounts', 'Accounts'], ['watchlist', 'Watchlist'], ['data', 'Data & privacy']];
+  const tabs: [Tab, string][] = [['general', 'General'], ['accounts', 'Accounts'], ['watchlist', 'Watchlist'], ['notifications', 'Notifications'], ['data', 'Data & privacy']];
   const now = Date.now();
 
   return (
@@ -69,7 +71,7 @@ export function Settings(p: SettingsProps) {
         <div className="grid2">
           <label className="field"><span>Auto-lock after idle (minutes)</span><input className="input" type="number" min={1} max={120} value={idle} onInput={(e) => setIdle(val(e))} data-testid="input-idle" /></label>
           <label className="field"><span>Refresh interval (seconds)</span><input className="input" type="number" min={0} max={3600} value={refresh} onInput={(e) => setRefresh(val(e))} data-testid="input-refresh" />
-            <small>0 = manual only. Runs only while the app is open and visible.</small></label>
+            <small>0 = manual only. Inactive-tab refresh is opt-in under Notifications. Auto-lock always stops monitoring.</small></label>
         </div>
         {err && <div className="err" role="alert">{err}</div>}
         <div className="row"><button className="btn primary" data-testid="button-save-settings">{saved ? 'Saved' : 'Save settings'}</button></div>
@@ -115,11 +117,12 @@ export function Settings(p: SettingsProps) {
         </div>
       </div>}
 
+      {tab === 'notifications' && <NotificationSettings profile={p.profile} onUpdate={p.onUpdate} />}
       {tab === 'data' && <DataTab profile={p.profile} onUpdate={p.onUpdate} onAudit={p.onAudit} onWipe={() => setWipe(true)} />}
 
       {removing && <Confirm title="Remove account?" danger confirmLabel="Remove account"
         body="Its token, fetched posts and comments are removed from this device. The account itself is untouched on Meta."
-        onConfirm={() => p.onUpdate((x) => ({ ...x, accounts: x.accounts.filter((a) => a.id !== removing), posts: x.posts.filter((q) => q.accountId !== removing), comments: x.comments.filter((c) => c.accountId !== removing), columns: x.columns.map((c) => (c.accountId === removing ? { ...c, accountId: undefined, postId: undefined } : c)) }))}
+        onConfirm={() => p.onUpdate((x) => ({ ...x, settings: { ...x.settings, notifications: Object.fromEntries(Object.entries(x.settings.notifications || {}).filter(([id]) => id !== removing)) }, accounts: x.accounts.filter((a) => a.id !== removing), posts: x.posts.filter((q) => q.accountId !== removing), comments: x.comments.filter((c) => c.accountId !== removing), columns: x.columns.map((c) => (c.accountId === removing ? { ...c, accountId: undefined, postId: undefined } : c)) }))}
         onClose={() => setRemoving(null)} />}
       {wipe && <Confirm title="Wipe all data on this device" danger requireText="WIPE" confirmLabel="Wipe everything"
         body="Deletes the encrypted vault, tokens, accounts, columns, tiles, watchlist and audit log from this browser. Exported .swprofile files are not affected."
@@ -157,7 +160,7 @@ function DataTab({ profile, onUpdate, onAudit, onWipe }: { profile: Profile; onU
   };
   const apply = () => {
     if (!preview) return;
-    onUpdate((x) => ({ ...x, settings: preview.settings, columns: preview.columns, tiles: preview.tiles, watchlist: preview.watchlist }));
+    onUpdate((x) => ({ ...x, settings: { ...preview.settings, notifications: x.settings.notifications || {} }, columns: preview.columns, tiles: preview.tiles, watchlist: preview.watchlist }));
     setPreview(null); setFile(null); setImMsg('Settings imported and re-encrypted under this device’s passphrase.');
   };
 
@@ -233,7 +236,9 @@ export function Help({ onClose }: { onClose: () => void }) {
       <li>Paste the App ID in Settings, then Connect. Pages and linked Instagram business accounts are discovered automatically.</li>
       <li>Tokens are short-lived. When one expires you will see a one-tap reconnect banner.</li></ol></div>
     <div className="section"><h3>Limits worth knowing</h3><ol className="help-steps">
-      <li>Refresh only runs while the app is open and visible; it fetches the latest 20 posts per account with their comments and replies.</li>
+      <li>Refresh normally runs only while visible. Settings → Notifications can allow best-effort inactive-tab refresh while unlocked; browsers may throttle or suspend it. Auto-lock and closing the app stop monitoring.</li>
+      <li>Opt in per Facebook/Instagram account for generic local alerts about new comments, replies or watchlist matches. No server push is used. iPhone cannot reliably poll in the background, even when installed.</li>
+      <li>Refresh fetches the latest 20 posts per account with their comments and replies.</li>
       <li>Activity shows recent comments fetched to this device, not a platform-wide mentions feed.</li>
       <li>LinkedIn and TikTok are launch tiles only; they have no moderation API here.</li></ol></div>
   </Dialog>;

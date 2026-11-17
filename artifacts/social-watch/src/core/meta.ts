@@ -4,6 +4,10 @@ const GRAPH = 'https://graph.facebook.com';
 let cooldownUntil = 0;
 let pendingCallback: URLSearchParams | undefined;
 let networkSession = new AbortController();
+let requestAllowed = () => !document.hidden;
+export function setMetaRequestGuard(guard: () => boolean): void {
+  requestAllowed = guard;
+}
 export class MetaError extends Error {
   reauth: boolean;
   retryAt: number;
@@ -67,7 +71,7 @@ interface GraphList<T> { data: T[]; paging?: { next?: string; cursors?: { after?
 type Raw = Record<string, any>;
 async function request<T>(version: string, path: string, token: string, params: Record<string, string> = {}, method = 'GET'): Promise<T> {
   validateVersion(version);
-  if (document.hidden) throw new MetaError('Refresh paused while the app is hidden. Reopen it to continue.');
+  if (!requestAllowed()) throw new MetaError('Refresh paused: the profile is locked, idle, or inactive-tab refresh is off.');
   if (Date.now() < cooldownUntil)
     throw new MetaError('Meta rate limit reached. Refresh will resume after the cooldown.', false, cooldownUntil);
   const url = new URL(`${GRAPH}/${version}/${path}`);
