@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "vx_y_OfF9tJXYcB94bnvf"
+uri = "file://generated-artifacts/social-watch-source.zip"
+type = "unspecified"
+title = "Social Watch — GitHub-ready source"
+description = "Standalone Preact PWA source with encrypted storage, unit tests, MIT licence, setup guide, and GitHub Pages deployment workflow. No backend or credentials included."
+logical_id = "8079c68c-6a27-457e-9946-db1f64ecf31e"
+content_hash = "sha256:2163b0b879d4c703651240e2ef956cb1712ada4b7c1a5fb941bc8fa02e3ab280"
+size = 103400
+mtime_ms = 1794911255599
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:8441ed67-74ce-4883-b924-9fc399991fa7/8079c68c-6a27-457e-9946-db1f64ecf31e/7a0e631b-a8b2-4a88-beb1-924c5f569cda"
+storage_version_token = "1794911270150256"
+content_type = "application/octet-stream"
