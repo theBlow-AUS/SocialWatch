@@ -157,6 +157,17 @@ The production service worker precaches only the bundled application shell. No M
 
 ## Tests and code
 
+### Dependency security
+
+The workspace and standalone downloads use patched dependency lockfiles. Workbox's
+current release still requests older Glob/Minimatch majors, so targeted overrides
+select their patched releases. These overrides exist both in the workspace root
+configuration and this app's `package.json`: pnpm ignores package-level overrides
+inside a larger workspace but applies them when this folder is used as a standalone
+repository. Keep both sets aligned when upgrading. Keep this app's dependency
+versions explicit rather than `catalog:` so its independent lockfile and source
+download continue to install outside the workspace.
+
 `pnpm test` runs Node's built-in unit tests for cryptographic round trips, randomized salt/IV, incorrect passwords, tampering, metadata validation, export credential exclusion, malformed import handling and unsafe URLs. Notification tests cover inactive-tab and idle-lock guards, per-account opt-ins, comment/reply categories, watchlist filtering, silent baselines, deduplication, import exclusion, generic notification text and session checks. Automated logic tests do not certify OS notification delivery on real devices.
 
 ### Browser vault regressions

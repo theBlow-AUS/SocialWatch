@@ -45,7 +45,7 @@ export const ProfileSchema = z.object({
     refreshSeconds: z.number().refine(n => n === 0 || (n >= 60 && n <= 3600)),
     theme: z.enum(['light', 'dark']),
     backgroundRefresh: z.boolean().optional(),
-    notifications: z.record(NotificationPreferenceSchema).optional(),
+    notifications: z.record(z.string(), NotificationPreferenceSchema).optional(),
   }),
   accounts: z.array(AccountSchema).max(100),
   posts: z.array(PostSchema).max(20000),
