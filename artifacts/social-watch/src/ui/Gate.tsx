@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { Eye, KeyRound, Lock, ShieldCheck, WifiOff, HardDrive } from 'lucide-react';
 import { passStrength, val } from './util';
 import { Confirm } from './Dialog';
+import { FacebookEntry } from './FacebookEntry';
 
 export function BrandMark() {
   return <span className="brand-mark" aria-hidden="true"><Eye /></span>;
@@ -73,7 +74,9 @@ export function Gate({ mode, onSubmit, onWipe, storageError }: Props) {
       </section>
       <section className="gate-form">
         <form key={shake} className={`gate-card${shake ? ' shake' : ''}`} onSubmit={submit} data-testid="form-gate">
+          <FacebookEntry disabled={busy} />
           <h2>{setup ? 'Set a passphrase' : 'Unlock your desk'}</h2>
+          <p className="muted">Step 2 · {setup ? 'Create' : 'Unlock'} this device’s encrypted vault</p>
           <p>{setup
             ? 'It derives the key that encrypts everything here. There is no recovery: forget it and the only way back is wiping this device.'
             : 'Enter the passphrase for this device. Sessions lock automatically when idle.'}</p>

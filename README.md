@@ -28,6 +28,7 @@ database server, cloud account sync, analytics, or notification service.
 - [Install on iPhone or iPad](#install-on-iphone-or-ipad)
 - [First launch and account setup](#first-launch-and-account-setup)
 - [Setting Up a Meta App ID](#setting-up-a-meta-app-id)
+- [Optional Facebook sign-in, then vault unlock](#optional-facebook-sign-in-then-vault-unlock)
 - [Notification setup](#notification-setup)
 - [Offline use, backups, and multiple devices](#offline-use-backups-and-multiple-devices)
 - [Updates and uninstalling](#updates-and-uninstalling)
@@ -243,13 +244,11 @@ saved locally in the encrypted vault.
 3. To inspect the interface without real accounts, choose **Try demo**. Demo data is
    simulated, in-memory, and not connected to Meta.
 4. Before creating a Meta app, read [Setting Up a Meta App ID](#setting-up-a-meta-app-id).
-   They identify the Page and Instagram use cases and permissions, and explain an
-   important login compatibility requirement. Meta's current Pages/Instagram setup
-   uses Facebook Login for Business; the current Social Watch build does not yet
-   support its configuration, so an App ID alone will not complete live login.
+   These instructions identify the Page and Instagram use cases and permissions.
+   Social Watch uses Facebook Login for Business with a **User access token**
+   configuration. An App ID alone is not enough.
    **Never enter an app secret.**
-5. Use **Try demo** to explore the app until its Business Login integration is
-   available. After that update, save your App ID and supported Graph API version
+5. Save your App ID, Business Login Configuration ID and supported Graph API version
    under **Settings → General**, then connect under **Settings → Accounts**.
 6. The Facebook Page must be one you can manage, and Instagram must be a professional
    account linked to that Page. Other users' accounts may require App Review and
@@ -266,14 +265,14 @@ This section is for the person configuring live Facebook Page and linked
 Instagram professional-account access. You do **not** need a Meta App ID to install
 Social Watch, use its local vault, or try the fictional demo.
 
-> **Current build limitation — read before starting:** Social Watch currently
-> redirects to Facebook using a browser-only OAuth flow. It does not yet send a
-> Facebook Login for Business configuration ID (`config_id`), and has no setting
-> for one. The Meta setup below identifies the correct use cases, but is
-> preparation, **not a working end-to-end live-login procedure for this build**.
-> An App ID alone cannot complete this integration. Use **Try demo** until a
-> compatible login integration is implemented. Do not switch use cases or expose
-> an app secret to try to work around this limitation.
+> **Choose the correct token type:** Social Watch supports Facebook Login for
+> Business using a **User access token** configuration and a browser-only token
+> redirect. It does not support System-user configurations or secret-based code
+> exchanges. Enter both the App ID and Configuration ID; never an App Secret.
+> This connects social accounts, not the encrypted vault: your passphrase remains
+> necessary. Live connection still depends on Meta permissions, eligible accounts,
+> approved access where required and correct redirect settings. It has not been
+> verified against a real Meta account by the project tests.
 
 ### 1. Have the right accounts and website ready
 
@@ -349,7 +348,8 @@ one or its credentials.
    Do not add direct-message, publishing, advertising or webhook permissions
    merely because the dashboard offers them.
 
-These are the scopes Social Watch's current code requests:
+Include these permissions in the Business Login configuration for both platforms.
+Social Watch sends `config_id` rather than a separate hardcoded `scope` list:
 
 | Permission | Purpose in Social Watch |
 | --- | --- |
@@ -378,7 +378,7 @@ table for the Page-management screen supplied with this guide.
 | `pages_read_user_content` | **Keep/add** for reading comments and other user-generated Page content. |
 | `pages_manage_engagement` | **Keep/add** for replying to and moderating Page comments. This is not the same as managing Page posts. |
 | `public_profile` | **Keep the default.** Meta supplies this baseline login permission automatically; it is not access to everyone's profile. |
-| `business_management` | **Keep if required by the use case/configuration.** Meta's Page use case includes this as a required permission. Social Watch's current OAuth scope list does not explicitly request it, so a dashboard entry alone does not mean the browser token has it. Do not remove required defaults or assume this fixes the login blocker. |
+| `business_management` | **Keep if required by the use case/configuration.** Meta's Page use case includes this as a required permission. Keep it in the Business Login configuration where required; an available dashboard permission alone does not mean the returned token has it. |
 | **Business Asset User Profile Access** | **Relevant for Facebook commenter identity fields.** Social Watch requests a comment's `from` information and displays the author's name when returned. Check this feature's access requirements if those fields are needed or Meta returns a related error. See the access note below; ordinary comment permissions do not guarantee access to profile fields. |
 | `pages_manage_metadata` | **Do not add for Social Watch.** Used for Page settings and webhook subscriptions. This static app does not receive webhooks; this permission will not enable background push. |
 | `pages_manage_posts` | **Do not add for Social Watch.** It does not create, edit or delete Page posts. Comment moderation uses `pages_manage_engagement`. |
@@ -424,9 +424,8 @@ Instagram Login route.
 5. Use **Ready for testing** to open Meta's test/checklist page and read its
    requirements. This is not an instruction to make every row show that label,
    nor is it a button that automatically grants production access.
-6. Keep setup/testing separate from live Social Watch sign-in. The current
-   Business Login integration blocker still applies. Once a compatible
-   integration exists, test read-only Page discovery/posts/comments first on
+6. After configuring Business Login and saving both public IDs, test
+   read-only Page discovery/posts/comments first on
    assets you control. Test replies/hide/unhide only on disposable test comments
    you created; these actions affect Meta, not just this device. Do not delete
    real comments just to obtain a test count.
@@ -445,7 +444,7 @@ Instagram Login route.
 Do not aim for an arbitrary API-call count. Follow the actual **Review → Testing**
 checklist for your app. Meta's Graph API Explorer can help test permitted API
 reads with the correct app and authorized assets, but it is a developer tool,
-not a workaround for Social Watch's missing login integration. Never paste an
+not a replacement for configuring Social Watch's Business Login flow. Never paste an
 Explorer access token into the App ID field, commit it, or include it in a screenshot.
 
 Before seeking broader access, prepare the required app details (including a
@@ -479,25 +478,38 @@ it does not claim that live API tests or App Review have been completed.
 4. Under app roles, ensure your testing Facebook user has an appropriate app role
    and has accepted any invitation. That person must also have access to the
    intended Page, including moderation tasks. An app role does not grant Page access.
-5. Follow Meta's Business Login configuration instructions as preparation, but
-   **stop before attempting live Social Watch sign-in**: this build cannot consume
-   the resulting configuration ID. A configuration that requires a server-side
-   secret/token exchange also cannot run on GitHub Pages alone. Do not enter the
-   Pages URL as a webhook endpoint; this static app cannot receive webhooks.
+5. Open **Facebook Login for Business → Configurations → Create configuration**.
+   Give it a descriptive name, such as `Social Watch browser connection`.
+6. Choose **User access token**, **not System-user access token**. Select the
+   Facebook Page/Instagram assets and minimum permissions described above,
+   keeping any Meta-required defaults. Click **Create** and copy the
+   **Configuration ID**. This is a public numeric identifier, different from
+   the App ID and App Secret.
+7. In Social Watch, open **Settings → General**. Save the **Meta App ID**,
+   **Business Login Configuration ID**, and a Graph API version supported by
+   your Meta app. The settings screen shows the exact redirect URL to register.
+   Use the current version of the app on your published site, not an older
+   service-worker-cached build missing the Configuration ID field.
+8. Do not enter the Pages URL as a webhook endpoint; this static app cannot
+   receive webhooks. Do not choose a secret-based authorization-code exchange.
+   These restrictions apply equally on GitHub Pages and static self-hosting.
 
-### 6. Connect only after the login integration is compatible
+### 6. Connect Facebook Pages and linked Instagram accounts
 
-Once Social Watch supports the required Business Login configuration and documents
-its supported browser-only flow, save the **Meta App ID** and a supported
-**Graph API version** in **Settings → General**. Configure any additional fields
-introduced by that update, then use **Settings → Accounts → Connect with Facebook**.
-Grant only the intended assets, return to Social Watch, unlock and refresh.
+After saving both IDs, use **Settings → Accounts → Connect with Facebook**.
+Sign in with the Facebook account that can manage your Page. Grant only the
+intended assets, return to Social Watch, unlock your vault again and refresh.
+The token is held in memory until unlock and is encrypted before persistence.
+Connecting is not a vault password reset, cross-device sync or a private-site gate.
 Expected results are the selected Facebook Pages and their linked professional
 Instagram accounts—not personal-profile feeds, Messenger inboxes or Threads.
 
-If login fails today, the missing Business Login integration is a known blocker,
-not evidence that you should choose a different use case. If a future compatible
-login succeeds but no Pages appear, check the Facebook identity, Page access,
+If login returns an authorization code instead of a usable short-lived token,
+Social Watch stops with an explanatory error: check that the configuration is
+for **User access token**, not System-user. If Meta refuses the browser token
+flow for your configuration, do not expose an App Secret as a workaround.
+If login is cancelled/declined, start Connect again when ready. If no Pages
+appear after login, check the Facebook identity, Page access,
 accepted app roles, granted assets and permission/access status.
 
 **Official references:** [Create an App with Meta](https://developers.facebook.com/docs/development/create-an-app),
@@ -505,6 +517,59 @@ accepted app roles, granted assets and permission/access status.
 [Facebook Login for Business](https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business/).
 The use-case names above match the supplied picker text and were checked against
 Meta's documentation on 19 November 2026. Dashboard labels and requirements can change.
+
+## Optional Facebook sign-in, then vault unlock
+
+The entry screen now offers **Continue with Facebook**, followed by your vault
+passphrase. This is optional social-account authorization, not a Facebook-only
+replacement for your vault key or a private-site access gate. The same procedure
+works with a GitHub Pages deployment or an HTTPS static self-hosted copy.
+
+1. Complete [Setting Up a Meta App ID](#setting-up-a-meta-app-id), including a
+   **User access token** Business Login configuration and the exact redirect URL.
+2. On Social Watch's entry screen, expand **Facebook sign-in setup**. Enter your
+   **Meta App ID**, **Business Login Configuration ID** and **Graph API version**.
+   If already configured inside your vault, copy those public identifiers from
+   **Settings → General** before locking. The encrypted vault cannot provide them
+   to the entry screen while locked.
+3. Optionally select **Remember these public IDs on this device**. This stores
+   only those three identifiers in browser local storage **outside encryption**,
+   so the entry screen can offer them next time. It never stores tokens,
+   passphrases, account names or the vault key there. Leave it unchecked on shared
+   devices; enter the IDs each time instead.
+4. Click **Continue with Facebook**. Facebook opens in the same tab. Sign in and
+   authorize only the intended Pages and linked Instagram accounts.
+5. On return, Social Watch removes the OAuth callback from the address bar and
+   shows that Facebook returned. **The vault is still locked.** The return has
+   not yet been accepted as a successful account connection.
+6. Enter the vault passphrase and click **Unlock**. On a new device with no vault,
+   create a passphrase first. The app validates the returned state and token,
+   discovers permitted accounts, and encrypts account credentials in this vault.
+   The validated connection's public settings become the vault's Meta settings
+   after account discovery succeeds.
+
+**Offline or without Facebook:** use **Use passphrase only**, then unlock normally.
+This discards any pending Facebook return. You can view previously saved local
+data without a Facebook login; fetching and moderation still require internet.
+The optional Facebook entry step is not mandatory two-factor authentication.
+
+**Cancellation and problems:** cancelled/declined sign-in is shown on return.
+Retry or use passphrase-only access. An expired/mismatched state, unsupported
+authorization code, revoked grant or failed account discovery must not be treated
+as successful social sign-in. Existing local data remains accessible with the
+correct passphrase. If you reload after returning but before unlock, the
+in-memory callback token is lost intentionally; start Facebook sign-in again.
+An in-flight login started by an older app version may also require restarting.
+
+**Forget or wipe:** **Forget Facebook setup** removes the remembered public IDs
+and discards the pending callback; it does not delete the vault or disconnect
+accounts already stored inside it. **Wipe all data** removes the vault, remembered
+public IDs and this tab's OAuth state. Neither action revokes Meta's permissions;
+manage those separately in Facebook's Business Integrations settings.
+
+Facebook cannot recover a forgotten passphrase, decrypt another device's vault
+or synchronize data. No backend, App Secret, cloud user account or closed-app
+push service is introduced by this entry flow.
 
 ## Notification setup
 

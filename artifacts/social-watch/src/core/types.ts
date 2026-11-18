@@ -40,6 +40,7 @@ export const ProfileSchema = z.object({
   version: z.literal(1),
   settings: z.object({
     appId: z.string().max(100),
+    configId: z.string().max(30).refine(v => v === '' || /^\d{5,30}$/.test(v)).optional(),
     apiVersion: z.string().regex(/^v\d{1,3}\.\d{1,2}$/),
     idleMinutes: z.number().min(1).max(120),
     refreshSeconds: z.number().refine(n => n === 0 || (n >= 60 && n <= 3600)),

@@ -1,4 +1,6 @@
 import type { Account, Comment, Post, Profile } from './types';
+import { businessLoginUrl } from './oauth';
+import { parsePublicLogin, type PublicLoginSettings } from './public-login';
 
 const GRAPH = 'https://graph.facebook.com';
 let cooldownUntil = 0;
@@ -22,7 +24,7 @@ export class MetaError extends Error {
 export function captureOAuthCallback(): void {
   const fragment = new URLSearchParams(location.hash.slice(1));
   const query = new URLSearchParams(location.search);
-  if (fragment.has('access_token') || fragment.has('error') || query.has('error')) {
+  if (fragment.has('access_token') || fragment.has('error') || query.has('error') || query.has('code')) {
     pendingCallback = fragment.has('access_token') || fragment.has('error') ? fragment : query;
     history.replaceState(null, '', location.pathname);
   }
@@ -31,41 +33,43 @@ export function clearPendingOAuth(): void {
   pendingCallback = undefined;
   networkSession.abort();
   networkSession = new AbortController();
+  // Storage may be denied. Never let nonce cleanup prevent the vault from locking.
+  // The callback token is already discarded; the nonce contains no credentials.
+  try { sessionStorage.removeItem('social-watch-oauth'); } catch { /* No pending callback can consume it. */ }
+}
+export function oauthReturnStatus(): 'returned' | 'error' | 'code' | null {
+  if (!pendingCallback) return null;
+  return pendingCallback.has('error') ? 'error' : pendingCallback.has('code') ? 'code' : 'returned';
 }
 function validateVersion(version: string): void {
   if (!/^v\d{1,3}\.\d{1,2}$/.test(version)) throw new Error('Enter a Graph API version such as v27.0.');
 }
-export async function beginLogin(appId: string, apiVersion: string): Promise<void> {
-  if (!/^\d{5,30}$/.test(appId)) throw new Error('Enter your own numeric Meta App ID in settings first.');
-  validateVersion(apiVersion);
+export async function beginLogin(appId: string, apiVersion: string, configId = ''): Promise<void> {
   const state = Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('');
   const redirect = new URL(import.meta.env.BASE_URL, location.href).href;
-  sessionStorage.setItem('social-watch-oauth', JSON.stringify({ state, at: Date.now() }));
-  const url = new URL(`https://www.facebook.com/${apiVersion}/dialog/oauth`);
-  url.search = new URLSearchParams({
-    client_id: appId, redirect_uri: redirect, state, response_type: 'token',
-    auth_type: 'rerequest',
-    scope: 'pages_show_list,pages_read_engagement,pages_read_user_content,pages_manage_engagement,instagram_basic,instagram_manage_comments',
-  }).toString();
+  const url = businessLoginUrl(appId, configId, apiVersion, redirect, state);
+  sessionStorage.setItem('social-watch-oauth', JSON.stringify({ state, at: Date.now(), settings: parsePublicLogin({ appId, configId, apiVersion }) }));
   location.assign(url.href);
 }
-export async function finishLogin(): Promise<{ token: string; expiresAt: number } | null> {
+export async function finishLogin(): Promise<{ token: string; expiresAt: number; settings: PublicLoginSettings } | null> {
   if (!pendingCallback) return null;
   const callback = pendingCallback;
   pendingCallback = undefined;
   const raw = sessionStorage.getItem('social-watch-oauth');
   sessionStorage.removeItem('social-watch-oauth');
   if (!raw) throw new MetaError('Login could not be verified. Please connect again.');
-  let saved: { state: string; at: number };
+  let saved: { state: string; at: number; settings?: unknown };
   try { saved = JSON.parse(raw); } catch { throw new MetaError('Invalid login session. Please connect again.'); }
-  if (callback.get('state') !== saved.state || Date.now() - saved.at > 15 * 60_000)
+  if (!saved || typeof saved.state !== 'string' || !saved.state || !Number.isFinite(saved.at) ||
+    callback.get('state') !== saved.state || Date.now() < saved.at || Date.now() - saved.at > 15 * 60_000)
     throw new MetaError('Login expired or the security check failed. Please connect again.');
   if (callback.has('error')) throw new MetaError('Facebook Login was cancelled or permissions were declined.');
+  if (callback.has('code')) throw new MetaError('This configuration returned a code requiring a server exchange. Use a User access token configuration, not a System-user configuration. Never enter an App Secret here.');
   const token = callback.get('access_token');
   const expires = Number(callback.get('expires_in'));
   if (!token || !Number.isFinite(expires) || expires <= 0)
     throw new MetaError('Facebook did not return a usable short-lived token. Please reconnect.');
-  return { token, expiresAt: Date.now() + expires * 1000 };
+  return { token, expiresAt: Date.now() + expires * 1000, settings: parsePublicLogin(saved.settings) };
 }
 interface GraphList<T> { data: T[]; paging?: { next?: string; cursors?: { after?: string } } }
 type Raw = Record<string, any>;

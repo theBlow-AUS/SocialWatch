@@ -25,6 +25,7 @@ export function Settings(p: SettingsProps) {
   const [tab, setTab] = useState<Tab>(p.initialTab ?? 'general');
   const s = p.profile.settings;
   const [appId, setAppId] = useState(s.appId);
+  const [configId, setConfigId] = useState(s.configId ?? '');
   const [apiVersion, setApiVersion] = useState(s.apiVersion);
   const [idle, setIdle] = useState(String(s.idleMinutes));
   const [refresh, setRefresh] = useState(String(s.refreshSeconds));
@@ -41,11 +42,12 @@ export function Settings(p: SettingsProps) {
     e.preventDefault();
     const idleN = Number(idle), refN = Number(refresh);
     if (appId && !/^\d{5,30}$/.test(appId.trim())) return setErr('A Meta App ID is a string of digits.');
+    if (configId && !/^\d{5,30}$/.test(configId.trim())) return setErr('A Business Login Configuration ID must contain 5 to 30 digits.');
     if (!/^v\d{1,3}\.\d{1,2}$/.test(apiVersion.trim())) return setErr('API version looks like v27.0.');
     if (!Number.isInteger(idleN) || idleN < 1 || idleN > 120) return setErr('Auto-lock must be 1 to 120 minutes.');
     if (!Number.isInteger(refN) || !(refN === 0 || (refN >= 60 && refN <= 3600))) return setErr('Interval must be 0 (manual) or 60 to 3600 seconds.');
     setErr('');
-    p.onUpdate((x) => ({ ...x, settings: { ...x.settings, appId: appId.trim(), apiVersion: apiVersion.trim(), idleMinutes: idleN, refreshSeconds: refN } }));
+    p.onUpdate((x) => ({ ...x, settings: { ...x.settings, appId: appId.trim(), configId: configId.trim(), apiVersion: apiVersion.trim(), idleMinutes: idleN, refreshSeconds: refN } }));
     setSaved(true); setTimeout(() => setSaved(false), 1600);
   };
 
@@ -128,7 +130,10 @@ export function Settings(p: SettingsProps) {
           <label className="field"><span>Your Meta App ID</span><input className="input mono" inputMode="numeric" value={appId} onInput={(e) => setAppId(val(e))} placeholder="e.g. 1234567890123456" data-testid="input-app-id" />
             <small>From your own development-mode app. No app secret is ever needed here.</small></label>
           <label className="field"><span>Graph API version</span><input className="input mono" value={apiVersion} onInput={(e) => setApiVersion(val(e))} data-testid="input-api-version" /></label>
+          <label className="field"><span>Business Login Configuration ID</span><input className="input mono" inputMode="numeric" value={configId} onInput={(e) => setConfigId(val(e))} data-testid="input-config-id" />
+            <small>Facebook Login for Business → Configurations. Choose User access token, not System-user. This is a public ID, not a secret.</small></label>
         </div>
+        <p className="muted">Facebook connects your Pages and linked Instagram accounts; it does not replace your vault passphrase. Permissions come from your Business Login configuration. Your redirect URL is {new URL(import.meta.env.BASE_URL, location.href).href}</p>
         <h3>Session & refresh</h3>
         <div className="grid2">
           <label className="field"><span>Auto-lock after idle (minutes)</span><input className="input" type="number" min={1} max={120} value={idle} onInput={(e) => setIdle(val(e))} data-testid="input-idle" /></label>
@@ -153,9 +158,9 @@ export function Settings(p: SettingsProps) {
             </div>;
           })}</div>}
         <div className="row">
-          <button className="btn primary" disabled={!s.appId} onClick={p.onConnect} data-testid="button-connect">
+          <button className="btn primary" disabled={!s.appId || !s.configId} onClick={p.onConnect} data-testid="button-connect">
             {p.profile.accounts.length ? <RefreshCw /> : <PlatformLogo platform="facebook" size="small" />}{p.profile.accounts.length ? 'Reconnect / add accounts' : 'Connect with Facebook'}</button>
-          {!s.appId && <span className="muted" style={{ fontSize: 12.5 }}>Add your App ID under General first.</span>}
+          {(!s.appId || !s.configId) && <span className="muted" style={{ fontSize: 12.5 }}>Add your App ID and Business Login Configuration ID under General, then save settings first.</span>}
         </div>
         <h3 style={{ marginTop: 8 }}>Demo mode</h3>
         <div className="list"><div className="list-row">
@@ -293,9 +298,9 @@ export function Help({ onClose }: { onClose: () => void }) {
         <li>Open in Safari.</li><li>Tap Share, then Add to Home Screen.</li><li>Pull down on a column to refresh; iOS does not allow background polling.</li></ol></div>
     </div>
     <div className="section"><h3>Connecting Meta</h3><ol className="help-steps">
-      <li>Create your own app at developers.facebook.com in development mode and add Facebook Login.</li>
+      <li>Create your own app at developers.facebook.com with Page management and, if needed, Instagram content use cases. Use Facebook Login for Business with a User access token configuration.</li>
       <li>Add this site’s address as a valid OAuth redirect URI.</li>
-      <li>Paste the App ID in Settings, then Connect. Pages and linked Instagram business accounts are discovered automatically.</li>
+      <li>Save both the App ID and Business Login Configuration ID in General settings, then Connect. You can also authorize from the entry screen before unlocking; your vault passphrase is always required. Remembering public IDs there is optional.</li>
       <li>Tokens are short-lived. When one expires you will see a one-tap reconnect banner.</li></ol></div>
     <div className="section"><h3>Limits worth knowing</h3><ol className="help-steps">
       <li>Refresh normally runs only while visible. Settings → Notifications can allow best-effort inactive-tab refresh while unlocked; browsers may throttle or suspend it. Auto-lock and closing the app stop monitoring.</li>

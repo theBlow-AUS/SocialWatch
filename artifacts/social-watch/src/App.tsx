@@ -141,8 +141,8 @@ function App() {
 
   const connect = useCallback(async () => {
     const p = ref.current;
-    if (!p?.settings.appId) { setModal('settings'); return; }
-    try { await saveProfile(p); await beginLogin(p.settings.appId, p.settings.apiVersion); }
+    if (!p?.settings.appId || !p.settings.configId) { setModal('settings'); return; }
+    try { await saveProfile(p); await beginLogin(p.settings.appId, p.settings.apiVersion, p.settings.configId); }
     catch (e) { showMetaError(e); }
   }, []);
 
@@ -156,11 +156,11 @@ function App() {
     try {
       const login = await finishLogin();
       if (login) {
-        const found = await discoverAccounts(login.token, login.expiresAt, p.settings.apiVersion);
+        const found = await discoverAccounts(login.token, login.expiresAt, login.settings.apiVersion);
         if (started !== session.current || !ref.current) return;
         update((x) => {
           const ids = new Set(found.map((a) => a.id));
-          return { ...x, accounts: [...x.accounts.filter((a) => !ids.has(a.id)), ...found], audit: [...x.audit, audit('connect', `Connected ${found.length} account(s)`)] };
+          return { ...x, settings: { ...x.settings, ...login.settings }, accounts: [...x.accounts.filter((a) => !ids.has(a.id)), ...found], audit: [...x.audit, audit('connect', `Connected ${found.length} account(s)`)] };
         });
         flash(`Connected ${found.length} account${found.length === 1 ? '' : 's'}`);
       }
@@ -330,9 +330,9 @@ function App() {
           <button className="icon-btn" onClick={() => setProblem(null)} aria-label="Dismiss error"><X /></button></div>}
         {!problem && expired.length > 0 && <div className="banner warn" role="alert"><AlertTriangle /><span className="grow">{expired.map((a) => a.name).join(', ')} {expired.length === 1 ? 'needs' : 'need'} a fresh login.</span>
           <button className="btn sm primary" onClick={() => void connect()} data-testid="button-reconnect"><Plug /> Reconnect</button></div>}
-        {!profile.accounts.length && !demo && <div className="banner info"><Plug /><span className="grow">{profile.settings.appId ? 'Your App ID is set. Connect Facebook to pull in Pages and Instagram accounts.' : 'Add your own Meta App ID to start, or explore with clearly labelled sample data.'}</span>
+        {!profile.accounts.length && !demo && <div className="banner info"><Plug /><span className="grow">{profile.settings.appId && profile.settings.configId ? 'Your Meta app and Business Login configuration are set. Connect Facebook to discover Pages and linked Instagram accounts.' : 'Add your Meta App ID and Business Login Configuration ID in General settings, or explore with clearly labelled sample data.'}</span>
           <button className="btn sm" onClick={() => setDemo(makeDemo())} data-testid="button-demo">Try demo</button>
-          <button className="btn sm primary" onClick={() => (profile.settings.appId ? void connect() : setModal('accounts'))} data-testid="button-get-started">{profile.settings.appId ? 'Connect' : 'Set up'}</button></div>}
+          <button className="btn sm primary" onClick={() => (profile.settings.appId && profile.settings.configId ? void connect() : setModal('settings'))} data-testid="button-get-started">{profile.settings.appId && profile.settings.configId ? 'Connect' : 'Set up'}</button></div>}
       </div>
 
       <main className="deck" ref={deckRef} aria-label="Columns"

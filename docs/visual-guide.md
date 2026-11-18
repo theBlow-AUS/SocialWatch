@@ -199,17 +199,23 @@ At the **Permissions and features** screen, follow the
 Do not enable every capability: Page comment access, commenter identity features
 and Instagram permissions have different requirements. **Ready for testing** is
 not production approval.
-Meta's current Pages/Instagram setup uses Facebook Login for Business. The current
-Social Watch build does not yet support its configuration, so an App ID alone will
-not complete live login. Use demo mode until that integration is available; never
-enter an app secret. Leave refresh manual initially while testing.
+Meta's Pages/Instagram setup uses Facebook Login for Business. Under General,
+save both your App ID and **Business Login Configuration ID**, using a **User
+access token** configuration, not System-user. The earlier screenshot above
+predates the Configuration ID field; current settings also show the exact redirect
+URL to register. Never enter an app secret. Leave refresh manual initially while testing.
 
 **Real app screenshot: Settings → Accounts before connection.**
 
 ![Accounts settings with no live accounts, a connection button and a demo-mode control.](images/app-06-account-setup.jpg)
 
-After the Business Login integration is available and your App ID is saved in
-General, return to Accounts and choose **Connect with Facebook**. Follow Meta's
+The entry screen now also provides optional **Continue with Facebook → vault
+passphrase** access. The original entry-screen screenshots predate this addition.
+Follow [the two-step entry instructions](../README.md#optional-facebook-sign-in-then-vault-unlock)
+for public-ID setup, opt-in remembering, offline access and cancellation.
+
+After both IDs are saved in General, return to Accounts and choose
+**Connect with Facebook**. Follow Meta's
 login and permission prompts, return to Social Watch and unlock again. Refresh to
 retrieve posts/comments. Demo identities will never appear here as authenticated
 accounts.

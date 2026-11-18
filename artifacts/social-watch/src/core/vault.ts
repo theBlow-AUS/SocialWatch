@@ -84,8 +84,9 @@ export function lockVault(): void {
 export async function wipeVault(): Promise<void> {
   lockVault();
   await writes.catch(() => {});
-  await storage('readwrite', s => s.clear());
+  localStorage.removeItem('social-watch-public-login');
   sessionStorage.removeItem('social-watch-oauth');
+  await storage('readwrite', s => s.clear());
 }
 export async function exportProfile(profile: Profile, passphrase: string): Promise<Blob> {
   return new Blob([await encodeProfile(profile, passphrase)], { type: 'application/octet-stream' });
