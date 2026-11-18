@@ -39,6 +39,8 @@ test('weak export passphrases are rejected', async () => {
 test('profile export/import preserves settings and excludes credentials and account data', async () => {
   const profile = defaultProfile();
   profile.settings.appId = '123456789';
+  profile.settings.theme = 'dark';
+  profile.settings.brandLogo = 'data:image/png;base64,ZmFrZQ==';
   profile.watchlist = ['refund', 'allergy'];
   profile.accounts = [{ id: 'abc', name: 'Private account', platform: 'facebook', token: 'never-export-this', expiresAt: 123 }];
   profile.comments = [{ id: 'c1', accountId: 'abc', postId: 'p1', text: 'private comment', author: 'Person', createdAt: '', hidden: false, reviewed: true }];

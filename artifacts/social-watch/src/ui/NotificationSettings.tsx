@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { NotificationPreference, Profile } from '../core/types';
 import { notificationPermission, requestNotificationPermission, showLocalNotification } from '../core/notifications';
 import { errMsg } from './util';
+import { PlatformLogo } from './PlatformLogo';
 
 const defaults: NotificationPreference = { enabled: false, comments: true, replies: true, watchlistOnly: false };
 export function NotificationSettings({ profile, onUpdate }: {
@@ -59,7 +60,7 @@ export function NotificationSettings({ profile, onUpdate }: {
     {(['facebook', 'instagram'] as const).map(platform => {
       const accounts = profile.accounts.filter(a => a.platform === platform);
       return accounts.length > 0 && <section className="section" key={platform}>
-        <h3>{platform === 'facebook' ? 'Facebook Pages' : 'Instagram'}</h3>
+        <h3 className="platform-heading"><PlatformLogo platform={platform} size="small" />{platform === 'facebook' ? 'Facebook Pages' : 'Instagram'}</h3>
         {accounts.map(account => {
           const pref = { ...defaults, ...profile.settings.notifications?.[account.id] };
           return <fieldset className="section" key={account.id}>

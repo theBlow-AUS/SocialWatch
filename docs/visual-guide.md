@@ -110,15 +110,17 @@ There is no automatic login or sample account password.
 
 | Area | What to expect |
 | --- | --- |
-| **Moderation queue** | Unreviewed comments; **FB** and **IG** badges distinguish Facebook Pages from linked Instagram professional accounts. |
+| **Moderation queue** | Unreviewed comments; Facebook and Instagram brand marks identify the Page or linked professional account behind each comment. |
 | **Post comments** | Comments for all posts, or a selected account/post. |
 | **Activity** | A local, newest-first view of available comments, not a separate social-platform activity feed. |
 | **Review / hide / reply / delete** | Review is local. Live hide, reply and delete use the connected account's permissions; demo actions are simulated only. |
-| **Launch tiles** | Links out to another site. They do not import that platform's comments or sign you in automatically. |
+| **Launch tiles** | LinkedIn and TikTok brand marks identify shortcuts to other sites. The tiles do not import those platforms' comments or sign you in automatically. |
 
 The header still says **No accounts connected** because demo accounts are
 in-memory samples, not authenticated Meta accounts. Real content requires your
 own developer app, eligible accounts, permissions and a refresh.
+Facebook and Instagram marks also appear beside account names and their
+notification settings; LinkedIn and TikTok marks appear on the launch-only tiles.
 
 ### Compose a reply
 
@@ -169,6 +171,23 @@ Facebook and Instagram.
 **Real app screenshot: Settings → General, with no real App ID entered.**
 
 ![General settings with a Meta App ID field, Graph API version, idle timeout and refresh interval.](images/app-05-general-settings.jpg)
+
+Social Watch can show a custom company/brand image in its header. In General
+settings, upload a PNG, JPEG or WebP image no larger than 1 MB. It is stored
+inside this device's encrypted vault and included in the encrypted settings-only
+profile export. Choose **Remove** to return to the Social Watch mark. The app name
+stays “Social Watch.” Because the image is encrypted, it appears in the unlocked
+app header, not on the pre-unlock gate.
+
+Choose **Automatic — match device**, **Light**, or **Dark** under **Colour theme**.
+Automatic follows the operating system appearance while the app is open; manual
+choices remain selected when the device theme changes. The header moon/sun button
+switches directly to the other manual mode. The mode is saved with the encrypted
+profile and transferred with other settings.
+
+**Real app screenshot: dark appearance selected manually.**
+
+![Social Watch Settings in dark mode, showing the automatic/light/dark selector and local brand-image controls.](images/app-11-dark-theme.jpg)
 
 Create your own eligible Meta developer app and register the exact published URL
 as its redirect URI. Enter the **App ID**, not the app secret. Leave refresh

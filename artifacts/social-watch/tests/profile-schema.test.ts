@@ -27,3 +27,26 @@ test('profile collection limits and unsafe-link validation remain enforced after
   profile.tiles = [{ id: 'bad', title: 'Unsafe', url: 'javascript:alert(1)', platform: 'custom' }];
   assert.equal(ProfileSchema.safeParse(profile).success, false);
 });
+
+test('theme modes include system while existing manual themes remain valid', () => {
+  const profile = defaultProfile();
+  assert.equal(profile.settings.theme, 'system');
+  for (const theme of ['system', 'light', 'dark'] as const) {
+    profile.settings.theme = theme;
+    assert.equal(ProfileSchema.safeParse(profile).success, true);
+  }
+  profile.settings.theme = 'invalid' as typeof profile.settings.theme;
+  assert.equal(ProfileSchema.safeParse(profile).success, false);
+});
+
+test('optional company logo accepts bounded raster image data only', () => {
+  const profile = defaultProfile();
+  for (const mime of ['png', 'jpeg', 'webp']) {
+    profile.settings.brandLogo = `data:image/${mime};base64,AA==`;
+    assert.equal(ProfileSchema.safeParse(profile).success, true);
+  }
+  profile.settings.brandLogo = 'data:image/svg+xml;base64,PHN2Zz4=';
+  assert.equal(ProfileSchema.safeParse(profile).success, false);
+  profile.settings.brandLogo = `data:image/png;base64,${'a'.repeat(1_500_000)}`;
+  assert.equal(ProfileSchema.safeParse(profile).success, false);
+});

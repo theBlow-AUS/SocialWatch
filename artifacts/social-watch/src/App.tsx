@@ -46,7 +46,16 @@ function App() {
     });
   }, []);
 
-  const theme = profile?.settings.theme ?? systemTheme();
+  const [systemColorScheme, setSystemColorScheme] = useState<'light' | 'dark'>(systemTheme());
+  const themeMode = profile?.settings.theme ?? 'system';
+  const theme = themeMode === 'system' ? systemColorScheme : themeMode;
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-color-scheme: dark)');
+    const sync = () => setSystemColorScheme(query.matches ? 'dark' : 'light');
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, []);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
 
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(''), 2200); };
@@ -274,7 +283,7 @@ function App() {
   if (phase === 'setup' || phase === 'unlock' || !profile) {
     return <Gate key={phase} mode={phase === 'setup' ? 'setup' : 'unlock'} onWipe={wipe} storageError={saveError}
       onSubmit={async (pass) => {
-        if (phase === 'setup') { const p = defaultProfile(); p.settings.theme = systemTheme(); await createVault(pass, p); await onUnlocked(p); }
+        if (phase === 'setup') { const p = defaultProfile(); await createVault(pass, p); await onUnlocked(p); }
         else await onUnlocked(await unlockVault(pass));
       }} />;
   }
@@ -288,7 +297,12 @@ function App() {
   return (
     <div className="shell">
       <header className="topbar">
-        <div className="brand"><BrandMark /><span>Social Watch</span></div>
+        <div className="brand">
+          {profile.settings.brandLogo
+            ? <img className="brand-logo" src={profile.settings.brandLogo} alt="Company brand logo" />
+            : <BrandMark />}
+          <span>Social Watch</span>
+        </div>
         <div className="top-mid">
           <span className="status" role="status" data-testid="status-refresh">
             <span className={`dot${refreshing ? ' busy' : problem || saveError ? ' bad' : ''}`} />
@@ -299,7 +313,10 @@ function App() {
         </div>
         <button className="icon-btn" onClick={() => void refresh()} disabled={refreshing || coolingDown} aria-label="Refresh (r)" title="Refresh (r)" data-testid="button-refresh"><RefreshCw className={refreshing ? 'spin' : ''} /></button>
         <button className="icon-btn hide-sm" onClick={() => setModal('audit')} aria-label="Audit log" title="Audit log" data-testid="button-audit"><ScrollText /></button>
-        <button className="icon-btn" onClick={() => update((x) => ({ ...x, settings: { ...x.settings, theme: x.settings.theme === 'dark' ? 'light' : 'dark' } }))} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} data-testid="button-theme">{theme === 'dark' ? <Sun /> : <Moon />}</button>
+        <button className="icon-btn" onClick={() => update((x) => ({ ...x, settings: { ...x.settings, theme: theme === 'dark' ? 'light' : 'dark' } }))}
+          aria-label={`${themeMode === 'system' ? 'Automatic theme' : `${themeMode} theme`}; switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`${themeMode === 'system' ? 'Automatic' : themeMode} theme · switch to ${theme === 'dark' ? 'light' : 'dark'}`}
+          data-testid="button-theme">{theme === 'dark' ? <Sun /> : <Moon />}</button>
         <button className="icon-btn" onClick={() => setModal('help')} aria-label="Help (?)" title="Help (?)" data-testid="button-help"><HelpCircle /></button>
         <button className="icon-btn" onClick={() => setModal('settings')} aria-label="Settings" title="Settings" data-testid="button-settings"><Cog /></button>
         <button className="btn sm" onClick={lock} title="Lock (l)" data-testid="button-lock"><Lock /> <span className="hide-sm">Lock</span></button>

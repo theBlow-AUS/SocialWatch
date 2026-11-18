@@ -6,6 +6,7 @@ import {
 import type { Account, Column, Comment, Post, Tile } from '../core/types';
 import { ago, escapeRe, initials, isHttps, ms, uid, val } from './util';
 import { Confirm, Dialog } from './Dialog';
+import { PlatformLogo, PlatformPill } from './PlatformLogo';
 
 export type ModAction = 'hide' | 'unhide' | 'delete' | 'reply';
 
@@ -50,7 +51,7 @@ function CommentCard({ c, data, onModerate, onReview, isDemo }: {
       <div className="c-head">
         <span className="avatar" aria-hidden="true">{initials(c.author)}</span>
         <div className="c-who"><b>{c.author}</b><small>{acc?.name ?? 'Unknown account'} · <time dateTime={c.createdAt}>{ago(c.createdAt)}</time></small></div>
-        {acc && <span className={`chip ${acc.platform === 'facebook' ? 'fb' : 'ig'}`}>{acc.platform === 'facebook' ? 'FB' : 'IG'}</span>}
+        {acc && <PlatformPill platform={acc.platform} compact />}
       </div>
       {post && <div className="c-post">{c.parentId && <CornerDownRight size={11} />} on “{post.text.slice(0, 80)}”</div>}
       <div className="c-text"><Highlight text={c.text} terms={data.watchlist} /></div>
@@ -136,7 +137,9 @@ function Tiles({ tiles, onTiles }: { tiles: Tile[]; onTiles: (t: Tile[]) => void
     {tiles.map((t, i) => (
       <div className="tile-wrap" key={t.id}>
         <a className="tile" href={t.url} target="_blank" rel="noopener noreferrer" data-testid={`link-tile-${t.id}`}>
-          <span className={`tile-badge ${t.platform}`} aria-hidden="true">{t.platform === 'linkedin' ? 'in' : t.platform === 'tiktok' ? 'Tk' : initials(t.title)}</span>
+          {t.platform === 'custom'
+            ? <span className="tile-badge custom" aria-hidden="true">{initials(t.title)}</span>
+            : <PlatformLogo platform={t.platform} size="medium" />}
           <span className="tile-txt"><b>{t.title}</b><small>{new URL(t.url).hostname}</small></span>
           <ArrowUpRight className="tile-go" />
         </a>

@@ -173,7 +173,7 @@ All persistent user content is held in **IndexedDB as a single authenticated enc
 - A new browser session always starts locked. Passphrases are not persisted.
 - No password reset or recovery. A strong passphrase protects exports and lost devices; it does not defend an unlocked device, malicious extensions or compromised site code.
 - **Settings → Data & privacy → Export** asks for a separate 12+ character export passphrase and downloads a single `.swprofile`, using the same encryption format with a fresh salt and IV.
-- Files transfer **settings only**: App ID, API version, refresh/idle times, theme, columns, watchlist and launch links. Tokens, accounts, posts, comments, audit history and account/post-specific column selections are excluded. Each destination device connects independently.
+- Files transfer **settings only**: App ID, API version, refresh/idle times, theme, optional brand logo, columns, watchlist and launch links. Tokens, accounts, posts, comments, audit history and account/post-specific column selections are excluded. Each destination device connects independently.
 - To import on another device, first create/unlock its own vault, choose the file and export passphrase, inspect the summary, and confirm replacement. Settings are re-encrypted under that device's existing key. Its connected accounts and local history are retained.
 - Import rejects unsupported versions, unsafe links, invalid schemas, wrong passwords and tampered ciphertext. Imported tokens are never accepted.
 - **Wipe all data** requires typing `WIPE` and deletes the encrypted vault. It does not delete exported files, revoke permissions at Meta, or erase data from the social platforms.

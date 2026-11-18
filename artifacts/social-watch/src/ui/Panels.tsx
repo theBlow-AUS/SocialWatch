@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { NotificationSettings } from './NotificationSettings';
-import { Plug, RefreshCw, Trash2, X, Download, Upload, AlertTriangle, FlaskConical, ScrollText } from 'lucide-react';
+import { Plug, RefreshCw, Trash2, X, Download, Upload, AlertTriangle, FlaskConical, ScrollText, Image } from 'lucide-react';
 import type { Profile } from '../core/types';
 import { exportProfile, importProfile, download } from '../core/vault';
 import { Confirm, Dialog } from './Dialog';
 import { ago, errMsg, val } from './util';
+import { PlatformLogo, PlatformPill } from './PlatformLogo';
 
 type Tab = 'general' | 'accounts' | 'watchlist' | 'notifications' | 'data';
 
@@ -33,6 +34,8 @@ export function Settings(p: SettingsProps) {
   const [term, setTerm] = useState('');
   const [removing, setRemoving] = useState<string | null>(null);
   const [wipe, setWipe] = useState(false);
+  const logoInput = useRef<HTMLInputElement>(null);
+  const [logoError, setLogoError] = useState('');
 
   const saveGeneral = (e: Event) => {
     e.preventDefault();
@@ -54,6 +57,31 @@ export function Settings(p: SettingsProps) {
     setTerm('');
   };
 
+  const chooseBrandLogo = (file?: File) => {
+    setLogoError('');
+    if (!file) return;
+    const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setLogoError('Choose a PNG, JPEG or WebP image.');
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      setLogoError('The logo must be 1 MB or smaller.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => setLogoError('The logo could not be read. Try another image.');
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        setLogoError('The logo could not be read. Try another image.');
+        return;
+      }
+      p.onUpdate(profile => ({ ...profile, settings: { ...profile.settings, brandLogo: reader.result as string } }));
+      setLogoError('');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const tabs: [Tab, string][] = [['general', 'General'], ['accounts', 'Accounts'], ['watchlist', 'Watchlist'], ['notifications', 'Notifications'], ['data', 'Data & privacy']];
   const now = Date.now();
 
@@ -61,6 +89,40 @@ export function Settings(p: SettingsProps) {
     <Dialog title="Settings" onClose={p.onClose} wide id="settings"
       tabs={<div className="tabs" role="tablist">{tabs.map(([k, l]) => <button key={k} role="tab" className="tab" aria-selected={tab === k} onClick={() => setTab(k)} data-testid={`tab-${k}`}>{l}</button>)}</div>}>
       {tab === 'general' && <form className="section" onSubmit={saveGeneral}>
+        <h3>Brand appearance</h3>
+        <div className="brand-settings">
+          <div className="brand-preview" aria-label={s.brandLogo ? 'Uploaded company logo preview' : 'Default Social Watch logo'}>
+            {s.brandLogo ? <img src={s.brandLogo} alt="Uploaded company brand logo" /> : <Image aria-hidden="true" />}
+          </div>
+          <div className="brand-settings-copy">
+            <b>Company / brand logo</b>
+            <small>Shown in the app header. PNG, JPEG or WebP, up to 1 MB. Saved in this device’s encrypted vault.</small>
+            <div className="row">
+              <input ref={logoInput} className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Choose company logo" data-testid="input-brand-logo"
+                onChange={e => { chooseBrandLogo(e.currentTarget.files?.[0]); e.currentTarget.value = ''; }} />
+              <button className="btn sm" type="button" onClick={() => logoInput.current?.click()} data-testid="button-choose-brand-logo">
+                <Upload /> {s.brandLogo ? 'Replace logo' : 'Upload logo'}
+              </button>
+              {s.brandLogo && <button className="btn sm" type="button" onClick={() => {
+                p.onUpdate(profile => {
+                  const { brandLogo: _brandLogo, ...settings } = profile.settings;
+                  return { ...profile, settings };
+                });
+              }} data-testid="button-remove-brand-logo"><Trash2 /> Remove</button>}
+            </div>
+            {logoError && <span role="alert" className="err">{logoError}</span>}
+          </div>
+        </div>
+        <label className="field theme-field"><span>Colour theme</span>
+          <select className="select" value={s.theme} onChange={e => p.onUpdate(profile => ({
+            ...profile, settings: { ...profile.settings, theme: val(e) as Profile['settings']['theme'] },
+          }))} data-testid="select-theme-mode">
+            <option value="system">Automatic — match device</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+          <small>Automatic follows your device’s light/dark appearance setting.</small>
+        </label>
         <h3>Meta app</h3>
         <div className="grid2">
           <label className="field"><span>Your Meta App ID</span><input className="input mono" inputMode="numeric" value={appId} onInput={(e) => setAppId(val(e))} placeholder="e.g. 1234567890123456" data-testid="input-app-id" />
@@ -84,7 +146,7 @@ export function Settings(p: SettingsProps) {
           : <div className="list">{p.profile.accounts.map((a) => {
             const expired = a.expiresAt > 0 && a.expiresAt < now;
             return <div className="list-row" key={a.id} data-testid={`row-account-${a.id}`}>
-              <span className={`chip ${a.platform === 'facebook' ? 'fb' : 'ig'}`}>{a.platform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
+              <PlatformPill platform={a.platform} />
               <span className="grow"><b>{a.name}</b><small>{expired ? 'Token expired — reconnect' : a.expiresAt ? `Token valid ${Math.max(0, Math.round((a.expiresAt - now) / 864e5))} more days` : 'Token without expiry'}</small></span>
               {expired && <span className="chip flare">expired</span>}
               <button className="icon-btn" onClick={() => setRemoving(a.id)} aria-label={`Remove ${a.name}`} data-testid={`button-remove-account-${a.id}`}><Trash2 /></button>
@@ -92,7 +154,7 @@ export function Settings(p: SettingsProps) {
           })}</div>}
         <div className="row">
           <button className="btn primary" disabled={!s.appId} onClick={p.onConnect} data-testid="button-connect">
-            {p.profile.accounts.length ? <RefreshCw /> : <Plug />}{p.profile.accounts.length ? 'Reconnect / add accounts' : 'Connect with Facebook'}</button>
+            {p.profile.accounts.length ? <RefreshCw /> : <PlatformLogo platform="facebook" size="small" />}{p.profile.accounts.length ? 'Reconnect / add accounts' : 'Connect with Facebook'}</button>
           {!s.appId && <span className="muted" style={{ fontSize: 12.5 }}>Add your App ID under General first.</span>}
         </div>
         <h3 style={{ marginTop: 8 }}>Demo mode</h3>
@@ -165,7 +227,7 @@ function DataTab({ profile, onUpdate, onAudit, onWipe }: { profile: Profile; onU
   };
 
   return <div className="section">
-    <p className="note" style={{ margin: 0 }}>Profile files carry settings only: App ID, API version, timers, theme, columns, launch tiles and watchlist. Accounts, tokens, posts, comments and the audit log are intentionally left out — each device connects separately.</p>
+        <p className="note" style={{ margin: 0 }}>Profile files carry settings only: App ID, API version, timers, theme, company logo, columns, launch tiles and watchlist. Accounts, tokens, posts, comments and the audit log are intentionally left out — each device connects separately.</p>
     <h3>Export .swprofile</h3>
     <form className="row" onSubmit={doExport}>
       <input className="input" type="password" autoComplete="new-password" placeholder="Separate export passphrase (12+)" value={exPass} onInput={(e) => setExPass(val(e))} aria-label="Export passphrase" data-testid="input-export-pass" />

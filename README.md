@@ -231,6 +231,11 @@ show the actual create-vault form, empty desk and fictional demo. The
 [account setup screenshots](docs/visual-guide.md#7-set-up-real-accounts-separately)
 show General and Accounts before entering any real credentials.
 
+The General settings section in the walkthrough also shows how to add an optional
+company/brand logo (PNG, JPEG or WebP up to 1 MB) and choose **Automatic**, **Light**
+or **Dark** appearance. Automatic follows the device theme; manual choices are
+saved locally in the encrypted vault.
+
 1. Open the installed app while online.
 2. Create an encrypted vault with a unique passphrase of at least **12 characters**.
    Store it securely; the project owner cannot reset it.

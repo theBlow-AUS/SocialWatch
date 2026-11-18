@@ -43,7 +43,8 @@ export const ProfileSchema = z.object({
     apiVersion: z.string().regex(/^v\d{1,3}\.\d{1,2}$/),
     idleMinutes: z.number().min(1).max(120),
     refreshSeconds: z.number().refine(n => n === 0 || (n >= 60 && n <= 3600)),
-    theme: z.enum(['light', 'dark']),
+    theme: z.enum(['system', 'light', 'dark']),
+    brandLogo: z.string().max(1_500_000).regex(/^data:image\/(?:png|jpeg|webp);base64,/).optional(),
     backgroundRefresh: z.boolean().optional(),
     notifications: z.record(z.string(), NotificationPreferenceSchema).optional(),
   }),
@@ -66,7 +67,7 @@ export type Profile = z.infer<typeof ProfileSchema>;
 export function defaultProfile(): Profile {
   return {
     version: 1,
-    settings: { appId: '', apiVersion: 'v27.0', idleMinutes: 15, refreshSeconds: 0, theme: 'light' },
+    settings: { appId: '', apiVersion: 'v27.0', idleMinutes: 15, refreshSeconds: 0, theme: 'system' },
     accounts: [], posts: [], comments: [], audit: [], watchlist: [],
     columns: [
       { id: 'queue', type: 'queue', title: 'Moderation queue', reviewed: 'unreviewed' },
