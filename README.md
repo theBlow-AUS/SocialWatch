@@ -365,6 +365,104 @@ access. The user must consent, have the necessary Page tasks, and meet Meta's
 access requirements. If Meta reports missing permissions, resolve the specific
 requirement rather than selecting an ads use case as a workaround.
 
+#### Permissions and features: what to do on this screen
+
+The **Permissions and features** screen is a list of capabilities available to
+your app, not a checklist where everything should be enabled. Use the following
+table for the Page-management screen supplied with this guide.
+
+| Row on the Meta screen | Required action for Social Watch |
+| --- | --- |
+| `pages_show_list` | **Keep/add** for discovering managed Pages. |
+| `pages_read_engagement` | **Keep/add** for reading Page posts and engagement. |
+| `pages_read_user_content` | **Keep/add** for reading comments and other user-generated Page content. |
+| `pages_manage_engagement` | **Keep/add** for replying to and moderating Page comments. This is not the same as managing Page posts. |
+| `public_profile` | **Keep the default.** Meta supplies this baseline login permission automatically; it is not access to everyone's profile. |
+| `business_management` | **Keep if required by the use case/configuration.** Meta's Page use case includes this as a required permission. Social Watch's current OAuth scope list does not explicitly request it, so a dashboard entry alone does not mean the browser token has it. Do not remove required defaults or assume this fixes the login blocker. |
+| **Business Asset User Profile Access** | **Relevant for Facebook commenter identity fields.** Social Watch requests a comment's `from` information and displays the author's name when returned. Check this feature's access requirements if those fields are needed or Meta returns a related error. See the access note below; ordinary comment permissions do not guarantee access to profile fields. |
+| `pages_manage_metadata` | **Do not add for Social Watch.** Used for Page settings and webhook subscriptions. This static app does not receive webhooks; this permission will not enable background push. |
+| `pages_manage_posts` | **Do not add for Social Watch.** It does not create, edit or delete Page posts. Comment moderation uses `pages_manage_engagement`. |
+| `read_insights` | **Do not add for Social Watch.** No Page Insights analytics dashboard is implemented. |
+| `email` | **Do not add for Social Watch.** It does not use a Facebook email address to create or unlock the local vault. |
+| **Live Video API** | **Do not add for Social Watch.** No live-video broadcasting is implemented. |
+| **Page Mentions** | **Do not add for Social Watch.** This feature concerns mentioning Pages when publishing; it is not needed for local keyword/watchlist matching. |
+| `facebook_branded_content_ads_brand` | **Do not add for Social Watch.** No partnership-ad management is implemented. |
+| `facebook_creator_marketplace_discovery` | **Do not add for Social Watch.** No creator marketplace discovery is implemented. |
+
+**Business Asset User Profile Access is a feature, not an OAuth scope to paste
+into the login URL.** Meta's feature-specific documentation requires App Review
+and business verification for live data access. Meta's general feature guidance
+also describes limited pre-review access for app/business-role users; do not
+treat a development test as approval to read real customers' profile fields.
+Follow the restrictions shown for this feature in your dashboard. Social Watch
+displays **Platform user** when Facebook does not return an author name; that
+label neither grants missing access nor resolves an API permission error.
+It does not currently display Facebook commenter profile pictures.
+
+For **Instagram**, open **Manage messaging & content on Instagram → Customize →
+API setup with Facebook Login → Permissions and features** as applicable. Ensure
+`instagram_basic` and `instagram_manage_comments` are available in addition to
+the shared Page permissions above. Their absence from the Page-only screen is
+not a reason to choose a different login route. The same permission marked
+**Found in 2 use cases** is shared by those use cases, not two separate grants.
+Do not add `instagram_manage_messages` for comment replies: direct messages are
+not supported. Do not substitute `instagram_business_*` scopes from the
+Instagram Login route.
+
+**How to proceed, step by step**
+
+1. Locate each of the four required `pages_*` rows above. If Meta offers an
+   **Add** action for a missing permission, use it. If already present, leave it.
+   Leave required `public_profile`/`business_management` defaults in place.
+2. Check the Business Asset User Profile Access requirements separately if
+   Facebook commenter names/identity fields are part of your intended use.
+3. Repeat the check for the two Instagram permissions in the Instagram use case.
+   Save changes if the dashboard offers a save button.
+4. Leave unrelated optional features unselected. If Meta already added one,
+   there is no need to request its review/access for Social Watch. Do not remove
+   anything marked required by Meta.
+5. Use **Ready for testing** to open Meta's test/checklist page and read its
+   requirements. This is not an instruction to make every row show that label,
+   nor is it a button that automatically grants production access.
+6. Keep setup/testing separate from live Social Watch sign-in. The current
+   Business Login integration blocker still applies. Once a compatible
+   integration exists, test read-only Page discovery/posts/comments first on
+   assets you control. Test replies/hide/unhide only on disposable test comments
+   you created; these actions affect Meta, not just this device. Do not delete
+   real comments just to obtain a test count.
+
+**What the columns and labels mean**
+
+| Label | How to interpret it |
+| --- | --- |
+| **API Calls: 0** | No calls are recorded for that row in the dashboard's displayed reporting context. This is not a missing-permission error. Adding a row does not generate calls; dashboard reporting may lag. |
+| **Ready for testing** | The item links to Meta's testing workflow. It does **not** mean testing passed, App Review was approved, users granted consent, or Social Watch login is compatible. |
+| **Found in 2 use cases** | The capability is associated with two selected use cases. Do not create another app or duplicate the permission because of this label. |
+| No action/status shown in the pasted list | The pasted text is not enough to establish whether the item is added, required or approved. Open that row's details and inspect the available action/access level. |
+| **Standard Access** / development or role-limited access, if shown | Limited testing access subject to the permission's rules, eligible assets and accepted app/business roles. It is not access to arbitrary customer accounts. |
+| **Advanced Access**, **Request access**, or **App Review**, if shown | Follow the displayed review and verification requirements before serving users outside the permitted test scope. The exact requirements differ by permission/feature. |
+
+Do not aim for an arbitrary API-call count. Follow the actual **Review → Testing**
+checklist for your app. Meta's Graph API Explorer can help test permitted API
+reads with the correct app and authorized assets, but it is a developer tool,
+not a workaround for Social Watch's missing login integration. Never paste an
+Explorer access token into the App ID field, commit it, or include it in a screenshot.
+
+Before seeking broader access, prepare the required app details (including a
+privacy policy and data-deletion information where requested), business
+verification, a truthful explanation of each requested permission, reviewer
+instructions and a screen recording demonstrating the working integration.
+Do not submit fictional demo data as proof of live Meta API functionality.
+Do not claim that App Review has passed until Meta has approved the relevant
+permission/feature. Publishing the GitHub Pages website and publishing/approving
+the Meta developer app are separate steps.
+
+References: [Meta feature access rules](https://developers.facebook.com/documentation/development/features-reference),
+[Business Asset User Profile Access requirements](https://developers.facebook.com/documentation/development/features-reference/business-asset-user-profile-access),
+[Instagram customization and testing](https://developers.facebook.com/docs/development/create-an-app/instagram-use-case).
+This guidance maps the supplied screen to the current Social Watch implementation;
+it does not claim that live API tests or App Review have been completed.
+
 ### 5. Configure website access and test roles
 
 1. In the app's basic settings, locate the **App ID**. It is a numeric identifier.

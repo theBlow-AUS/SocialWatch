@@ -114,6 +114,9 @@ For the novice installation walkthrough, see
 It maps the available Meta creation options to the correct selections, explains
 the **API setup with Facebook Login** choice inside the Instagram use case, and
 separates registration from the current build's live-login blocker.
+Its [Permissions and features checklist](../../README.md#permissions-and-features-what-to-do-on-this-screen)
+maps every row in the Page use-case screen to a required, conditional or unused
+capability and explains testing counts, feature access and review status.
 
 Meta changes dashboard wording and permissions over time. Consult Meta's official [create an app guide](https://developers.facebook.com/documentation/development/create-an-app/), [Facebook Login for Business guide](https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business/), and [Instagram comment moderation guide](https://developers.facebook.com/docs/instagram-platform/comment-moderation/) alongside these steps.
 

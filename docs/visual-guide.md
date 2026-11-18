@@ -194,6 +194,11 @@ Before creating a Meta app, follow the
 Select **Manage everything on your Page** and **Manage messaging & content on
 Instagram**, then choose **API setup with Facebook Login** within the Instagram
 use case. Do not select the incompatible generic Facebook Login use case.
+At the **Permissions and features** screen, follow the
+[row-by-row checklist and status explanations](../README.md#permissions-and-features-what-to-do-on-this-screen).
+Do not enable every capability: Page comment access, commenter identity features
+and Instagram permissions have different requirements. **Ready for testing** is
+not production approval.
 Meta's current Pages/Instagram setup uses Facebook Login for Business. The current
 Social Watch build does not yet support its configuration, so an App ID alone will
 not complete live login. Use demo mode until that integration is available; never
