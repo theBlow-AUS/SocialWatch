@@ -109,6 +109,12 @@ The build output is plain static files. GitHub Pages supplies HTTPS, required fo
 
 ## Create your own Meta developer app
 
+For the novice installation walkthrough, see
+[Setting Up a Meta App ID](../../README.md#setting-up-a-meta-app-id).
+It maps the available Meta creation options to the correct selections, explains
+the **API setup with Facebook Login** choice inside the Instagram use case, and
+separates registration from the current build's live-login blocker.
+
 Meta changes dashboard wording and permissions over time. Consult Meta's official [create an app guide](https://developers.facebook.com/documentation/development/create-an-app/), [Facebook Login for Business guide](https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business/), and [Instagram comment moderation guide](https://developers.facebook.com/docs/instagram-platform/comment-moderation/) alongside these steps.
 
 1. Visit [Meta for Developers](https://developers.facebook.com/) and register a developer account.
@@ -117,6 +123,7 @@ Meta changes dashboard wording and permissions over time. Consult Meta's officia
    - Meta does not let you remove a use case after creating the app. If the expected choices are unavailable or the dashboard marks them incompatible, pause before creating the app rather than selecting unrelated use cases.
    - Keep the app in **development mode** while testing.
 3. **Important login compatibility:** Meta's current Instagram API with Facebook Login setup uses **Facebook Login for Business**. This Social Watch version currently uses a manual OAuth redirect and does not yet configure a Business Login `config_id`. Selecting the Page/Instagram use cases is not enough by itself; the Social Watch login flow must support the Business Login configuration before account connection can work. Do not expect entering an App ID alone to complete login.
+   - Within the Instagram use case, choose **API setup with Facebook Login**, not **API setup with Instagram Login**. The latter uses a separate login and `instagram_business_*` permission family that this app does not implement. Meta permits only one Instagram login setup per app.
 4. Add your own Facebook user under the app's administrator/developer/tester roles and accept any invitation. That user must also have the appropriate Facebook Page access (including moderation tasks). Instagram must be a **business or creator** account linked to that Page.
 5. Configure the Facebook Login for Business web redirect with the exact published URL, including subpath and trailing slash. Add its domain and website platform URL where requested. Use the published site directly, not an embedded development preview. The Social Watch login integration must be updated to use the Business Login configuration before testing this flow.
 6. Ensure these permissions are available for your app/use case:

@@ -27,6 +27,7 @@ database server, cloud account sync, analytics, or notification service.
 - [Install on macOS](#install-on-macos)
 - [Install on iPhone or iPad](#install-on-iphone-or-ipad)
 - [First launch and account setup](#first-launch-and-account-setup)
+- [Setting Up a Meta App ID](#setting-up-a-meta-app-id)
 - [Notification setup](#notification-setup)
 - [Offline use, backups, and multiple devices](#offline-use-backups-and-multiple-devices)
 - [Updates and uninstalling](#updates-and-uninstalling)
@@ -241,8 +242,7 @@ saved locally in the encrypted vault.
    Store it securely; the project owner cannot reset it.
 3. To inspect the interface without real accounts, choose **Try demo**. Demo data is
    simulated, in-memory, and not connected to Meta.
-4. Before creating a Meta app, read the [complete Meta setup and permission
-   instructions](artifacts/social-watch/README.md#create-your-own-meta-developer-app).
+4. Before creating a Meta app, read [Setting Up a Meta App ID](#setting-up-a-meta-app-id).
    They identify the Page and Instagram use cases and permissions, and explain an
    important login compatibility requirement. Meta's current Pages/Instagram setup
    uses Facebook Login for Business; the current Social Watch build does not yet
@@ -259,6 +259,154 @@ saved locally in the encrypted vault.
 
 An installation on a second device does not sign in automatically. No credentials
 are shared by the project or synchronized between devices.
+
+## Setting Up a Meta App ID
+
+This section is for the person configuring live Facebook Page and linked
+Instagram professional-account access. You do **not** need a Meta App ID to install
+Social Watch, use its local vault, or try the fictional demo.
+
+> **Current build limitation — read before starting:** Social Watch currently
+> redirects to Facebook using a browser-only OAuth flow. It does not yet send a
+> Facebook Login for Business configuration ID (`config_id`), and has no setting
+> for one. The Meta setup below identifies the correct use cases, but is
+> preparation, **not a working end-to-end live-login procedure for this build**.
+> An App ID alone cannot complete this integration. Use **Try demo** until a
+> compatible login integration is implemented. Do not switch use cases or expose
+> an app secret to try to work around this limitation.
+
+### 1. Have the right accounts and website ready
+
+1. Publish Social Watch over HTTPS using the GitHub Pages instructions above.
+   Copy the exact address shown under your repository's **Settings → Pages**,
+   including the repository subpath and trailing slash.
+2. Sign in to Facebook as the person who can manage the intended Facebook Page.
+   Having a personal Facebook profile alone does not give access to a Page.
+3. For Instagram, use a **business or creator** account and link it to that
+   Facebook Page. A personal Instagram account is not sufficient for this route.
+4. Open [Meta for Developers](https://developers.facebook.com/), register as a
+   developer if prompted, then open **My Apps → Create App**.
+5. Enter an app name, such as `Social Watch for My Brand`, and a contact email.
+   Click **Next**. This creates a developer integration; it does not publish a
+   mobile app to the Apple App Store.
+
+### 2. Select these exact use cases
+
+In the list of options supplied with this guide, select the following:
+
+| Option shown by Meta | What to do | Why |
+| --- | --- | --- |
+| **Manage everything on your Page** | **Select** | Supplies the Pages API use case for Facebook Page posts and comment moderation. |
+| **Manage messaging & content on Instagram** | **Select** for linked Instagram moderation | Supplies the Instagram API use case. Social Watch uses comments, not direct messages. |
+| **Authenticate and request data from users with Facebook Login** | **Do not select** | This generic login use case is incompatible with the Page-management use case. The Facebook Login for Business setup below is different. |
+| **Create an app without a use case** | **Do not select** for this setup | Creates an ID without the permissions, features or products needed for moderation. |
+| Ads options: Marketing API, ad performance, ad leads, app ads, ads MCP server, Audience Network | **Leave unselected** | Advertising and monetization are not Social Watch features. |
+| Threads, Messenger, WhatsApp, Catalog, Instant Game, fundraisers, Live Video, embeds/oEmbed, data transfer, ThreatExchange | **Leave unselected** | Not used by Social Watch. A Meta use case does not add an unsupported platform to this app. |
+
+For Facebook-only use, start with **Manage everything on your Page**; Instagram's
+use case can be added later if Meta lists it as compatible. For both platforms,
+select both recommended choices now if the picker permits it.
+
+**Before clicking Next:** Meta greys out incompatible choices. If the second
+recommended choice is unavailable, do not select a similar-looking replacement.
+Check that you have not selected generic Facebook Login. You can add compatible
+use cases later from the dashboard, but **Meta does not allow removing a use case
+after the app is created**. For an existing app with the wrong incompatible use
+case, create a separate correctly configured app rather than deleting the old
+one or its credentials.
+
+### 3. Complete the creation wizard
+
+1. Click **Next** after choosing the use cases.
+2. On **Business**, select the business portfolio that owns/manages the assets
+   if appropriate. For a personal development test, choose **I don't want to
+   connect a business portfolio yet** only if Meta offers it and permits you to
+   continue. Do not select another business's portfolio.
+3. Read **Requirements**, then review **Overview** and choose **Go to dashboard**
+   (or the equivalent final creation button).
+4. Keep the app unpublished/in development while setting it up. Follow any
+   dashboard checks for your chosen use cases; creating the app is not approval
+   to access arbitrary users' accounts.
+5. If using accounts outside those you own/manage, Meta requires a connected
+   business portfolio and may require business verification, Advanced Access,
+   App Review or Tech Provider/access verification. Follow the requirements
+   shown for your app before inviting customers.
+
+### 4. Customize the Page and Instagram use cases
+
+1. In the app dashboard, open **Use cases** (or select the use-case card under
+   **Dashboard**), then **Customize** for Page management.
+2. Under **Permissions and features**, check the permissions listed below.
+   Meta may automatically add required permissions such as `public_profile`
+   and `business_management`; do not remove required defaults.
+3. Open **Customize** for **Manage messaging & content on Instagram**.
+4. Select **API setup with Facebook Login**. This is the route matching Social
+   Watch's linked-Page account discovery. **Do not select API setup with Instagram
+   Login**: that is a different integration and permission family
+   (`instagram_business_*`), which this build does not implement.
+   Meta documents only one Instagram login setup per app.
+5. Check the comment permissions below in **Permissions and features**.
+   Do not add direct-message, publishing, advertising or webhook permissions
+   merely because the dashboard offers them.
+
+These are the scopes Social Watch's current code requests:
+
+| Permission | Purpose in Social Watch |
+| --- | --- |
+| `pages_show_list` | Discover Pages the signed-in person can manage. |
+| `pages_read_engagement` | Read Page content and engagement. |
+| `pages_read_user_content` | Read user-generated content/comments on the Page. |
+| `pages_manage_engagement` | Moderate Page comments and reply. |
+| `instagram_basic` | Discover/read the linked Instagram professional account and media. |
+| `instagram_manage_comments` | Read, reply to and moderate Instagram comments. |
+
+A use case makes permissions available; selecting it does not itself grant
+access. The user must consent, have the necessary Page tasks, and meet Meta's
+access requirements. If Meta reports missing permissions, resolve the specific
+requirement rather than selecting an ads use case as a workaround.
+
+### 5. Configure website access and test roles
+
+1. In the app's basic settings, locate the **App ID**. It is a numeric identifier.
+   **Do not copy the App Secret into Social Watch, GitHub, screenshots or chat.**
+   An Instagram-specific app ID is not a substitute for the Meta App ID used by
+   this Facebook Login route.
+2. Add a **Website** platform/site URL and **App Domains** where requested.
+   The domain field takes only the hostname, not `https://` or a repository path.
+   The site URL takes the full published HTTPS address.
+3. Open **Facebook Login for Business** settings; Meta may have added this product
+   automatically. Set **Valid OAuth Redirect URIs** to the exact Social Watch
+   published address, including its subpath and trailing slash. Do not use the
+   repository's code URL or an embedded development preview.
+4. Under app roles, ensure your testing Facebook user has an appropriate app role
+   and has accepted any invitation. That person must also have access to the
+   intended Page, including moderation tasks. An app role does not grant Page access.
+5. Follow Meta's Business Login configuration instructions as preparation, but
+   **stop before attempting live Social Watch sign-in**: this build cannot consume
+   the resulting configuration ID. A configuration that requires a server-side
+   secret/token exchange also cannot run on GitHub Pages alone. Do not enter the
+   Pages URL as a webhook endpoint; this static app cannot receive webhooks.
+
+### 6. Connect only after the login integration is compatible
+
+Once Social Watch supports the required Business Login configuration and documents
+its supported browser-only flow, save the **Meta App ID** and a supported
+**Graph API version** in **Settings → General**. Configure any additional fields
+introduced by that update, then use **Settings → Accounts → Connect with Facebook**.
+Grant only the intended assets, return to Social Watch, unlock and refresh.
+Expected results are the selected Facebook Pages and their linked professional
+Instagram accounts—not personal-profile feeds, Messenger inboxes or Threads.
+
+If login fails today, the missing Business Login integration is a known blocker,
+not evidence that you should choose a different use case. If a future compatible
+login succeeds but no Pages appear, check the Facebook identity, Page access,
+accepted app roles, granted assets and permission/access status.
+
+**Official references:** [Create an App with Meta](https://developers.facebook.com/docs/development/create-an-app),
+[Customize the Instagram use case](https://developers.facebook.com/docs/development/create-an-app/instagram-use-case),
+[Facebook Login for Business](https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business/).
+The use-case names above match the supplied picker text and were checked against
+Meta's documentation on 19 November 2026. Dashboard labels and requirements can change.
 
 ## Notification setup
 

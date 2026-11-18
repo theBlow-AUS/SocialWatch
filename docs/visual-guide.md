@@ -190,7 +190,10 @@ profile and transferred with other settings.
 ![Social Watch Settings in dark mode, showing the automatic/light/dark selector and local brand-image controls.](images/app-11-dark-theme.jpg)
 
 Before creating a Meta app, follow the
-[complete Meta use-case and permission instructions](../artifacts/social-watch/README.md#create-your-own-meta-developer-app).
+[Setting Up a Meta App ID instructions](../README.md#setting-up-a-meta-app-id).
+Select **Manage everything on your Page** and **Manage messaging & content on
+Instagram**, then choose **API setup with Facebook Login** within the Instagram
+use case. Do not select the incompatible generic Facebook Login use case.
 Meta's current Pages/Instagram setup uses Facebook Login for Business. The current
 Social Watch build does not yet support its configuration, so an App ID alone will
 not complete live login. Use demo mode until that integration is available; never
@@ -208,7 +211,7 @@ accounts.
 
 Meta's login screens are not illustrated as completed sign-ins: they vary by app,
 account role and granted permissions. Follow the
-[Meta setup and permission instructions](../artifacts/social-watch/README.md#create-your-own-meta-developer-app).
+[Setting Up a Meta App ID instructions](../README.md#setting-up-a-meta-app-id).
 Instagram must be a professional account linked to an eligible Facebook Page.
 Review/access requirements apply for users outside your own developer-app roles.
 
