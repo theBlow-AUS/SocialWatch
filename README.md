@@ -48,39 +48,62 @@ device's installation section.
 
 ## Deploy the website to GitHub Pages
 
-This is a one-time task for the repository owner. The same deployment serves
+This is a one-time task for the repository owner. The same website serves
 Windows, Mac, iPhone, and iPad; you do not deploy a separate iOS build.
 
-### 1. Prepare the repository
+### First-time setup, step by step
 
-- Use this full repository, or fork it into your own GitHub account.
-- Keep the application source, lockfile, workspace configuration, and hidden
-  `.github` directory together.
-- The deployment workflow is [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
-  It runs for pushes to `main` and can also be started manually.
-- If you rename the default branch, update the workflow's branch filter.
-- If GitHub disabled Actions on your fork, open **Actions** and enable them after
-  reviewing the workflow.
+You need a GitHub account. These steps use GitHub in a web browser; you do not
+need to install Git or run commands.
 
-For a minimal standalone repository, the separately supplied
-`social-watch-source.zip` contains just the app. Extract its contents into the
-repository root, including `.github`; use the standalone workflow and lockfile
-from that archive, not the full workspace's workflow. For that layout, see
-[the standalone deployment instructions](artifacts/social-watch/README.md#github-pages-deployment).
+1. **Create your own copy.** Open the
+   [Social Watch repository](https://github.com/theBlow-AUS/SocialWatch) while
+   signed in to GitHub. Select **Fork** near the top-right, then **Create fork**.
+   This makes a copy under your account. If you already own a copy of the full
+   repository, use that instead.
+2. **Open your copy.** Check that the page shows your GitHub username as the
+   owner. The default branch should be named `main`. Keep the full repository
+   together, including the hidden `.github` folder; the deployment instructions
+   depend on it.
+3. **Allow the deployment workflow to run.** In your copy, select **Actions**.
+   If GitHub shows a notice that workflows are disabled, review the workflow in
+   [`.github/workflows/pages.yml`](.github/workflows/pages.yml), then select
+   **I understand my workflows, go ahead and enable them** (or the equivalent
+   button GitHub shows).
+4. **Tell GitHub to publish with Actions.** Select **Settings** in your
+   repository. In the left sidebar, select **Pages**. Under **Build and
+   deployment**, set **Source** to **GitHub Actions**. If GitHub asks to save the
+   setting, select **Save**. Do not choose **Deploy from a branch** or a `/docs`
+   folder.
+5. **Start the first build.** Select the **Actions** tab. In the workflow list,
+   select **Deploy Social Watch to GitHub Pages**. Select **Run workflow**,
+   leave the branch set to `main`, and select the green **Run workflow** button.
+   If you do not see the workflow, refresh the page after enabling Actions and
+   check that `.github/workflows/pages.yml` exists in your repository.
+6. **Wait for both jobs.** Open the new run at the top of the workflow list.
+   Wait for **build** and then **deploy** to finish with green check marks. Select
+   a failed job to read the first error; do not treat a red or still-running
+   result as a published site.
+7. **Open the published website.** Return to **Settings → Pages** and select
+   **Visit site**. You can also open the successful run's **github-pages**
+   deployment link. Copy the exact HTTPS address GitHub opens; do not guess it
+   from the repository name. Keep any repository path and final slash.
+8. **Open it once, then install it.** Visit that exact address online in the
+   browser you plan to use. Continue to [install on Windows](#install-on-windows),
+   [install on macOS](#install-on-macos), or
+   [install on iPhone or iPad](#install-on-iphone-or-ipad).
 
-### 2. Enable Pages
+The source repository or published website may be publicly accessible. Do not
+put passwords, access tokens, Meta app secrets, or other private information in
+the repository. Do not change a private repository to public just to make Pages
+work; ask its owner to check the account's Pages availability instead.
 
-1. Open the repository on GitHub.
-2. Go to **Settings → Pages → Build and deployment**.
-3. Set **Source** to **GitHub Actions**. Do not choose a branch or `/docs` folder.
-4. Make sure repository or organization policy permits Actions and Pages.
-   If GitHub offers a plan/visibility restriction, resolve that with the repository
-   owner rather than making private code public without approval.
+### Updates and workflow details
 
-### 3. Start the deployment
-
-Push your committed changes to `main`, or open **Actions → Deploy Social Watch to
-GitHub Pages → Run workflow**, select `main`, and run it.
+After setup, each push to `main` starts a new build and deployment. You can also
+start one manually from **Actions → Deploy Social Watch to GitHub Pages → Run
+workflow**. If you use a different default branch, update the workflow's branch
+filter first.
 
 For this complete workspace, the workflow:
 
@@ -90,18 +113,15 @@ For this complete workspace, the workflow:
 4. Builds the PWA.
 5. Uploads only `artifacts/social-watch/dist/public` and deploys it to Pages.
 
-It does **not** deploy the API server, a database, or the component-preview service.
-Do not upload the source folder or run `vite dev` as a production server.
+It does **not** deploy the API server, a database, or the component-preview
+service. Do not upload the source folder or run `vite dev` as a production
+server. Use the exact published HTTPS URL for Meta's valid OAuth redirect URI.
 
-### 4. Get the live URL
-
-1. Wait for both the workflow's **build** and **deploy** jobs to succeed.
-2. Open **Settings → Pages → Visit site**, or the **github-pages** deployment link
-   on the workflow run.
-3. Copy that exact HTTPS URL. If it includes a repository path, keep the path and
-   trailing slash. Do not guess the address from the repository name.
-4. Open the live URL online before installing it on any device.
-5. Use the same exact address for Meta's valid OAuth redirect URI.
+For a minimal standalone repository, the separately supplied
+`social-watch-source.zip` contains just the app. Extract its contents into the
+repository root, including `.github`, and use the standalone workflow and
+lockfile from that archive. See the
+[standalone deployment instructions](artifacts/social-watch/README.md#github-pages-deployment).
 
 GitHub supplies HTTPS. The relative asset paths support both domain-root and
 repository-subpath hosting. If using a custom domain, configure it in Pages,

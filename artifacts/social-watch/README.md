@@ -24,13 +24,52 @@ The dev server binds to `PORT` when provided. Production assets use relative pat
 
 ### Standalone source download
 
-The `social-watch-source.zip` download is the standalone repository source. Unzip it, create a repository in your own GitHub account, and upload/push its contents, including the hidden `.github` directory. No account-specific URLs or credentials are included.
+The `social-watch-source.zip` download is the standalone repository source. It
+does not include account-specific URLs or credentials. If you do not want to use
+Git commands, use the browser-only
+[full-repository setup guide](../../README.md#first-time-setup-step-by-step)
+instead. The steps below are for publishing the standalone ZIP.
 
-1. Keep your default branch named `main`, or adjust `.github/workflows/pages.yml`.
-2. Under **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**.
-3. Push to `main`, or run **Deploy Social Watch to GitHub Pages** from Actions.
-4. The workflow installs dependencies, typechecks, runs encryption tests, builds, and deploys only `dist/public`.
-5. Open the URL GitHub provides after the workflow finishes. Copy this exact HTTPS URL, **including the repository path and trailing slash**, when configuring Meta Login.
+1. Download and extract the ZIP. Keep all extracted files together, including
+   the hidden `.github` folder.
+2. On GitHub, select **New repository**. Choose a name, leave **Add a README**,
+   `.gitignore`, and license unchecked, then select **Create repository**. Keep
+   the default branch named `main`.
+3. Open a terminal in the extracted folder. Initialize the folder and commit its
+   files:
+
+   ```sh
+   git init -b main
+   git add .
+   git commit -m "Add Social Watch"
+   ```
+
+4. On the new, empty GitHub repository page, copy its HTTPS repository address.
+   Add it as the remote and push your files, replacing the example address with
+   the one GitHub displayed:
+
+   ```sh
+   git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git
+   git push -u origin main
+   ```
+
+5. Open your repository on GitHub and select **Actions**. If GitHub says
+   workflows are disabled, review `.github/workflows/pages.yml` and enable them.
+6. Select **Settings → Pages**. Under **Build and deployment**, set **Source**
+   to **GitHub Actions** and save if prompted.
+7. Select **Actions → Deploy Social Watch to GitHub Pages**. Choose **Run
+   workflow**, keep `main` selected, and start the run.
+8. Open the new run and wait for both **build** and **deploy** to succeed. If
+   either fails, open that job and read its first failed step.
+9. Select **Settings → Pages → Visit site** (or the `github-pages` link on the
+   successful run). Use the exact HTTPS address GitHub opens, including any
+   repository path and final slash.
+10. Open that URL online in the browser on each device, then follow the
+   installation steps in the [full installation guide](../../README.md#install-on-windows).
+
+The source repository and published website may be public. Never upload passwords,
+tokens, or a Meta app secret. Do not make a private repository public just to
+enable Pages; ask its owner to check account availability.
 
 ### Complete development repository
 
