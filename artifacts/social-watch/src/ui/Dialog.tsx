@@ -1,5 +1,5 @@
 import type { ComponentChildren } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useLayoutEffect, useRef } from 'preact/hooks';
 import { X } from 'lucide-react';
 
 const FOCUSABLE = 'button:not([disabled]),[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -19,13 +19,16 @@ export function Dialog({ title, onClose, children, footer, wide, tabs, id = 'dia
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
 
-  useEffect(() => {
+  // Install focus and keyboard handling during commit, before the visible dialog
+  // can receive input. A passive effect can run after a fast Escape keypress.
+  useLayoutEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     const el = ref.current;
     const first = el?.querySelector<HTMLElement>('[data-autofocus]') ?? el?.querySelectorAll<HTMLElement>(FOCUSABLE)[1] ?? el?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
         e.stopPropagation();
         closeRef.current();
       } else if (e.key === 'Tab' && el) {

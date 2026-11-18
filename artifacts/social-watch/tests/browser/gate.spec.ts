@@ -8,6 +8,7 @@ test('wrong passphrase stays locked; saved settings survive reload; confirmed wi
   // A lock/reload alone could cancel the pending save: observe its committed value first.
   await expect.poll(() => persistedIdle(page)).toBe(23);
   await page.keyboard.press('Escape');
+  await expect(page.getByTestId('dialog-settings')).toHaveCount(0);
   await page.getByTestId('button-lock').click();
   await unlockViaUI(page, 'wrong synthetic passphrase');
   await expect(page.getByRole('alert')).toHaveText('That passphrase did not open the vault.');
@@ -21,6 +22,7 @@ test('wrong passphrase stays locked; saved settings survive reload; confirmed wi
   await page.getByTestId('button-settings').click();
   await expect(page.getByTestId('input-idle')).toHaveValue('23');
   await page.keyboard.press('Escape');
+  await expect(page.getByTestId('dialog-settings')).toHaveCount(0);
   await page.getByTestId('button-lock').click();
   await page.getByTestId('button-forgot').click();
   const wipe = page.getByRole('button', { name: 'Wipe everything', exact: true });
@@ -30,6 +32,19 @@ test('wrong passphrase stays locked; saved settings survive reload; confirmed wi
   await expect(page.getByRole('heading', { name: 'Set a passphrase' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Set a passphrase' })).toBeVisible();
+});
+
+test('Settings handles Escape as soon as it opens, including after reopening', async ({ vaultPage: page }) => {
+  await createViaUI(page);
+  for (let i = 0; i < 5; i++) {
+    await page.getByTestId('button-settings').click();
+    await expect(page.getByTestId('dialog-settings')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('dialog-settings')).toHaveCount(0);
+    await expect(page.getByTestId('button-settings')).toBeFocused();
+  }
+  await page.getByTestId('button-lock').click();
+  await expect(page.getByRole('heading', { name: 'Unlock your desk' })).toBeVisible();
 });
 
 for (const failure of ['throw', 'error', 'blocked'] as const) {
@@ -57,6 +72,7 @@ test('aborted writes show an error, preserve the old record, and Retry save pers
   await page.getByTestId('input-idle').fill('29');
   await page.getByTestId('button-save-settings').click();
   await page.keyboard.press('Escape');
+  await expect(page.getByTestId('dialog-settings')).toHaveCount(0);
   await expect(page.getByRole('alert')).toContainText('Changes could not be saved to the encrypted vault');
   await expect(page.getByRole('alert')).toContainText('not saved');
   expect(await persistedIdle(page)).toBe(15);
@@ -101,6 +117,7 @@ test('locking cancels pending UI saves without leaking errors into the next sess
   await page.getByTestId('button-save-settings').click();
   await expect.poll(() => page.evaluate(() => window.vaultFaults.waiting)).toBe(true);
   await page.keyboard.press('Escape');
+  await expect(page.getByTestId('dialog-settings')).toHaveCount(0);
   await page.getByTestId('button-lock').click();
   await expect(page.getByRole('heading', { name: 'Unlock your desk' })).toBeVisible();
   // Unlock while the previous session's save is still awaiting encryption.
