@@ -2,6 +2,21 @@
 
 A private, static Progressive Web App for Facebook Page and linked Instagram professional-account comment moderation. TweetDeck-style columns on desktop, swipeable columns on phones. Installable from Edge, Chrome or Safari; no executable, subscription, backend, database server, analytics or telemetry.
 
+## Screenshots and illustrated setup
+
+See the [visual walkthrough in the full repository](../../docs/visual-guide.md)
+for real app captures using the built-in fictional **Harbour Lane Bakery** demo:
+Facebook Page and linked Instagram professional-account comments, a reply draft,
+watchlist highlights, a phone-sized layout, and account/notification settings.
+LinkedIn and TikTok are shown accurately as launch links only.
+
+The same walkthrough includes numbered **installation illustrations** for
+GitHub Pages, Windows Edge/Chrome, macOS Safari, and iPhone/iPad Safari. These are
+clearly labeled diagrams, not claimed to be real GitHub or device screenshots.
+No live credentials or social-media actions were used for the app captures.
+If this README is viewed from a standalone source download, open the
+[main repository's visual guide](https://github.com/theBlow-AUS/SocialWatch/blob/main/docs/visual-guide.md).
+
 ## Run locally
 
 Use Node.js **24** and pnpm **10.26.1**.

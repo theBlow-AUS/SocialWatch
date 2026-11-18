@@ -21,6 +21,7 @@ database server, cloud account sync, analytics, or notification service.
 ## Contents
 
 - [Before installing](#before-installing)
+- [Screenshots and illustrated walkthrough](docs/visual-guide.md)
 - [Deploy the website to GitHub Pages](#deploy-the-website-to-github-pages)
 - [Install on Windows](#install-on-windows)
 - [Install on macOS](#install-on-macos)
@@ -46,6 +47,18 @@ database server, cloud account sync, analytics, or notification service.
 If the website is already published, skip deployment and go directly to your
 device's installation section.
 
+## See what to expect
+
+The [visual walkthrough](docs/visual-guide.md) shows the **real app interface**
+with fictional Harbour Lane Bakery Facebook and Instagram demo content, reply
+composition, watchlist highlights, settings, and a phone-sized layout.
+
+![Real Social Watch app screenshot with fictional Facebook and Instagram demo data, clearly labeled as simulated.](docs/images/app-03-desktop-demo.jpg)
+
+No live accounts were connected for these captures. LinkedIn/TikTok remain
+**launch links only**, not imported feeds. Device and GitHub installation images
+below are **labeled illustrations**, not screenshots of those systems.
+
 ## Deploy the website to GitHub Pages
 
 This is a one-time task for the repository owner. The same website serves
@@ -55,6 +68,8 @@ Windows, Mac, iPhone, and iPad; you do not deploy a separate iOS build.
 
 You need a GitHub account. These steps use GitHub in a web browser; you do not
 need to install Git or run commands.
+
+![Installation illustration, not a GitHub screenshot: eight numbered steps from forking the repository to opening the published app.](docs/images/install-github-pages.svg)
 
 1. **Create your own copy.** Open the
    [Social Watch repository](https://github.com/theBlow-AUS/SocialWatch) while
@@ -137,6 +152,8 @@ installation, although a work/school policy may block it.
 
 ### Microsoft Edge
 
+![Installation illustration, not a Windows screenshot: open the live site, select Edge installation, confirm, pin, launch and create a vault.](docs/images/install-windows-edge.svg)
+
 1. Open the published HTTPS URL in Edge.
 2. Click the **Install app** icon in the address bar if shown.
 3. Alternatively, open **… → Apps → Install this site as an app**. In some Edge
@@ -147,6 +164,8 @@ installation, although a work/school policy may block it.
    You can also find it at `edge://apps`.
 
 ### Google Chrome
+
+![Installation illustration, not a Chrome screenshot: open the site, choose Install page as app, confirm and launch.](docs/images/install-chrome.svg)
 
 1. Open the published HTTPS URL in Chrome.
 2. Click the address-bar **Install** icon, or open **⋮ → Cast, save, and share →
@@ -160,6 +179,8 @@ in a normal tab.
 ## Install on macOS
 
 ### Safari on macOS Sonoma 14 or later
+
+![Installation illustration, not a Mac screenshot: Safari Add to Dock, confirm the name, launch and create the vault in the installed window.](docs/images/install-mac-safari.svg)
 
 1. Open the published HTTPS URL in **Safari**.
 2. Choose **File → Add to Dock**, or **Share → Add to Dock**.
@@ -186,6 +207,8 @@ Use an up-to-date iOS/iPadOS release and **Safari**. Home Screen notification AP
 require iOS/iPadOS **16.4 or later**, but this app still has no reliable background
 push service.
 
+![Installation illustration, not an iPhone screenshot: Safari Share, Add to Home Screen, Open as Web App if shown, Add and launch the app.](docs/images/install-ios-safari.svg)
+
 1. Open the published HTTPS URL directly in **Safari**. If the link opened inside
    a messaging/social app, choose **Open in Safari** first.
 2. Tap **Share**. Depending on Safari's layout, you may first need to open its menu
@@ -202,6 +225,11 @@ separate iOS deployment. Closing, locking, or suspending the app stops or delays
 monitoring. Reopen and refresh to fetch new comments.
 
 ## First launch and account setup
+
+The [first-launch screenshots](docs/visual-guide.md#5-first-launch-create-the-vault)
+show the actual create-vault form, empty desk and fictional demo. The
+[account setup screenshots](docs/visual-guide.md#7-set-up-real-accounts-separately)
+show General and Accounts before entering any real credentials.
 
 1. Open the installed app while online.
 2. Create an encrypted vault with a unique passphrase of at least **12 characters**.
@@ -224,6 +252,8 @@ An installation on a second device does not sign in automatically. No credential
 are shared by the project or synchronized between devices.
 
 ## Notification setup
+
+See the [notification settings screenshot and limitations](docs/visual-guide.md#8-notifications-understand-the-limits-before-opting-in).
 
 Notification permission is separate from Facebook/Instagram login and from PWA
 installation. Choices are **off by default and per device/account**.
