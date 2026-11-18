@@ -241,17 +241,21 @@ saved locally in the encrypted vault.
    Store it securely; the project owner cannot reset it.
 3. To inspect the interface without real accounts, choose **Try demo**. Demo data is
    simulated, in-memory, and not connected to Meta.
-4. For live Facebook/Instagram data, create your own Meta developer app and register
-   the exact published HTTPS URL as its redirect URI. Then open **Settings →
-   General**, enter your **App ID** and supported Graph API version, and save.
+4. Before creating a Meta app, read the [complete Meta setup and permission
+   instructions](artifacts/social-watch/README.md#create-your-own-meta-developer-app).
+   They identify the Page and Instagram use cases and permissions, and explain an
+   important login compatibility requirement. Meta's current Pages/Instagram setup
+   uses Facebook Login for Business; the current Social Watch build does not yet
+   support its configuration, so an App ID alone will not complete live login.
    **Never enter an app secret.**
-5. Open **Settings → Accounts → Connect with Facebook** and grant access to the Pages
-   you manage. After login returns, unlock again. Instagram must be a professional
-   account linked to an eligible Facebook Page.
-6. Refresh to fetch posts/comments and configure your columns and watchlist.
-7. Read and follow the [complete Meta setup and permission instructions](artifacts/social-watch/README.md#create-your-own-meta-developer-app).
-   A development-mode Meta app is not automatically authorized for arbitrary
-   customers' accounts; App Review and additional access may be required.
+5. Use **Try demo** to explore the app until its Business Login integration is
+   available. After that update, save your App ID and supported Graph API version
+   under **Settings → General**, then connect under **Settings → Accounts**.
+6. The Facebook Page must be one you can manage, and Instagram must be a professional
+   account linked to that Page. Other users' accounts may require App Review and
+   additional access.
+7. Once connected, refresh to fetch posts/comments and configure your columns and
+   watchlist.
 
 An installation on a second device does not sign in automatically. No credentials
 are shared by the project or synchronized between devices.

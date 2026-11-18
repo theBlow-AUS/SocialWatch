@@ -189,18 +189,22 @@ profile and transferred with other settings.
 
 ![Social Watch Settings in dark mode, showing the automatic/light/dark selector and local brand-image controls.](images/app-11-dark-theme.jpg)
 
-Create your own eligible Meta developer app and register the exact published URL
-as its redirect URI. Enter the **App ID**, not the app secret. Leave refresh
-manual initially if you are still setting things up.
+Before creating a Meta app, follow the
+[complete Meta use-case and permission instructions](../artifacts/social-watch/README.md#create-your-own-meta-developer-app).
+Meta's current Pages/Instagram setup uses Facebook Login for Business. The current
+Social Watch build does not yet support its configuration, so an App ID alone will
+not complete live login. Use demo mode until that integration is available; never
+enter an app secret. Leave refresh manual initially while testing.
 
 **Real app screenshot: Settings → Accounts before connection.**
 
 ![Accounts settings with no live accounts, a connection button and a demo-mode control.](images/app-06-account-setup.jpg)
 
-After saving your App ID in General, return to Accounts and choose
-**Connect with Facebook**. Follow Meta's real login and permission prompts,
-return to Social Watch and unlock again. Refresh to retrieve posts/comments.
-Demo identities will never appear here as authenticated accounts.
+After the Business Login integration is available and your App ID is saved in
+General, return to Accounts and choose **Connect with Facebook**. Follow Meta's
+login and permission prompts, return to Social Watch and unlock again. Refresh to
+retrieve posts/comments. Demo identities will never appear here as authenticated
+accounts.
 
 Meta's login screens are not illustrated as completed sign-ins: they vary by app,
 account role and granted permissions. Follow the

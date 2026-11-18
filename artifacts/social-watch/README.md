@@ -109,24 +109,28 @@ The build output is plain static files. GitHub Pages supplies HTTPS, required fo
 
 ## Create your own Meta developer app
 
-Meta changes dashboard wording and permissions over time. Consult the official [manual Facebook Login flow](https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/) and [Instagram comment moderation guide](https://developers.facebook.com/docs/instagram-platform/comment-moderation/) alongside these steps.
+Meta changes dashboard wording and permissions over time. Consult Meta's official [create an app guide](https://developers.facebook.com/documentation/development/create-an-app/), [Facebook Login for Business guide](https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business/), and [Instagram comment moderation guide](https://developers.facebook.com/docs/instagram-platform/comment-moderation/) alongside these steps.
 
 1. Visit [Meta for Developers](https://developers.facebook.com/) and register a developer account.
-2. Create an app with the Facebook Login use case/product and the Page/Instagram permissions needed for your accounts. Where offered, choose the business app/use case appropriate to managing your own Pages. Keep it in **development mode**.
-3. Add your own Facebook user under the app's administrator/developer/tester roles and accept any invitation. That user must also have the appropriate Facebook Page access (including moderation tasks). Instagram must be a **business or creator** account linked to that Page.
-4. Under Facebook Login settings, enable web/browser OAuth and register the exact published URL as a **Valid OAuth Redirect URI**, including subpath and trailing slash. Add its domain and website platform URL where requested. Use the published site directly, not an embedded development preview.
-5. Ensure permissions are available for your app/use case:
+2. In the use-case picker, choose **Manage everything on your Page** and **Manage messaging & content on Instagram** if Meta allows both. These match Social Watch's Page comment moderation and linked Instagram professional-account features. Do not add ads, WhatsApp, Messenger, Catalog, or Threads use cases.
+   - Do not also select **Authenticate and request data from users with Facebook Login**: Meta lists it as incompatible with **Manage everything on your Page**.
+   - Meta does not let you remove a use case after creating the app. If the expected choices are unavailable or the dashboard marks them incompatible, pause before creating the app rather than selecting unrelated use cases.
+   - Keep the app in **development mode** while testing.
+3. **Important login compatibility:** Meta's current Instagram API with Facebook Login setup uses **Facebook Login for Business**. This Social Watch version currently uses a manual OAuth redirect and does not yet configure a Business Login `config_id`. Selecting the Page/Instagram use cases is not enough by itself; the Social Watch login flow must support the Business Login configuration before account connection can work. Do not expect entering an App ID alone to complete login.
+4. Add your own Facebook user under the app's administrator/developer/tester roles and accept any invitation. That user must also have the appropriate Facebook Page access (including moderation tasks). Instagram must be a **business or creator** account linked to that Page.
+5. Configure the Facebook Login for Business web redirect with the exact published URL, including subpath and trailing slash. Add its domain and website platform URL where requested. Use the published site directly, not an embedded development preview. The Social Watch login integration must be updated to use the Business Login configuration before testing this flow.
+6. Ensure these permissions are available for your app/use case:
    - `pages_show_list`
    - `pages_read_engagement`
    - `pages_read_user_content`
    - `pages_manage_engagement`
    - `instagram_basic`
    - `instagram_manage_comments`
-6. Standard access in development is for accounts you own/manage and users with app roles. Other users/accounts can require Advanced Access, App Review, business verification, and different Login for Business configuration. Some business-managed Page setups may require additional permissions such as `ads_read`/`ads_management`; this app does not request those automatically. Do not assume a development app can moderate arbitrary customer accounts.
-7. Copy the **App ID**, not the app secret. Social Watch has no place for an app secret and must never receive one.
-8. Create/unlock your Social Watch vault. Open **Settings → General**, enter your App ID, verify the current Graph API version, and save. The included default is `v27.0`; change it if your app uses another supported version.
-9. Open **Settings → Accounts → Connect with Facebook**. Select and grant access to the Pages you want. Login returns to Social Watch; unlock this device again. Pages and their linked Instagram accounts are discovered automatically.
-10. Refresh to retrieve posts and comments. If no Pages are returned, check app roles, Page tasks, permission grants and the account selected during login.
+7. Standard access in development is for accounts you own/manage and users with app roles. Other users/accounts can require Advanced Access, App Review, business verification, and a reviewed Business Login configuration. Some business-managed Page setups may require additional permissions such as `ads_read`/`ads_management`; this app does not request those automatically. Do not assume a development app can moderate arbitrary customer accounts.
+8. Copy the **App ID**, not the app secret. Social Watch has no place for an app secret and must never receive one.
+9. After the Social Watch login flow supports your Business Login configuration, create/unlock your vault. Open **Settings → General**, enter your App ID, verify the current Graph API version, and save. The included default is `v27.0`; change it if your app uses another supported version.
+10. Open **Settings → Accounts → Connect with Facebook**. Select and grant access to the Pages you want. Login returns to Social Watch; unlock this device again. Pages and their linked Instagram accounts are discovered automatically.
+11. Refresh to retrieve posts and comments. If no Pages are returned, check app roles, Page tasks, permission grants and the account selected during login.
 
 Each user supplies their own app. There are no shared credentials and no Replit integration dependency at runtime.
 
